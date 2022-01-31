@@ -53,20 +53,59 @@ const Client = mongoose.model("Clients", ClientSchema);
 const TypeSchema = new mongoose.Schema(
     {
         Id: String,
+        TypeGroup: Number,
         TypeName: String
     },
     { timestamps: true }
 );
 const Type = mongoose.model("Types", TypeSchema);
 
+const CityGroupNumber = 1;
+const CitizenshipGroupNumber = 2;
+const DisabilityGroupNumber = 3;
+
 app.post("/clients", async function(req, res) {
     console.log(req.body);
 
     let clientData = req.body;
-    if (clientData.Surname && clientData.Name && clientData.MiddleName && clientData.DateOfBirth && clientData.PassportSerialNumber && clientData.PassportNumber && clientData.PlaceOfIssue 
+    if (!(clientData.Surname && clientData.Name && clientData.MiddleName && clientData.DateOfBirth && clientData.PassportSerialNumber && clientData.PassportNumber && clientData.PlaceOfIssue 
         && clientData.DateOfIssue && clientData.IdentificationalNumber && clientData.PlaceOfBirth && clientData.HomeCity && clientData.HomeAddress && clientData.FamilyStatus 
-        && clientData.Citizenship && clientData.Disability && clientData.Retiree  && clientData.IsConscript){
-        
+        && clientData.Citizenship && clientData.Disability && clientData.Retiree  && clientData.IsConscript)){
+        res.status(422);
+        res.send();
+    }
+
+    let clientHomeCityId;
+
+    var clientHomeCity = await Type.findOne({TypeGroup: CityGroupNumber, TypeName: clientData.HomeCity});
+    if (clientHomeCity){
+        clientHomeCityId = clientHomeCity.Id;
+    }else{
+        clientHomeCityId = uuidv4();
+        let newHomeCity = new Type({Id: clientHomeCityId, TypeGroup: CityGroupNumber, TypeName: clientData.HomeCity});
+        await newHomeCity.save();
+    }
+
+    let citizenshipId;
+    
+    var clientCitizenship = await Type.findOne({TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
+    if (clientCitizenship){
+        citizenshipId = clientCitizenship.Id;
+    }else{
+        citizenshipId = uuidv4();
+        let newCitizenship = new Type({Id: citizenshipId, TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
+        await newCitizenship.save();
+    }
+
+    let disabilityId;
+    
+    var clientCitizenship = await Type.findOne({TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
+    if (clientCitizenship){
+        citizenshipId = clientCitizenship.Id;
+    }else{
+        citizenshipId = uuidv4();
+        let newCitizenship = new Type({Id: citizenshipId, TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
+        await newCitizenship.save();
     }
 
     let newClient = new Client({ Id: uuidv4(), Surname: "Android", Name: "Der"});
