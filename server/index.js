@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/myFirstDatabase?retryWrites=true&w=majority/BankDB', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/BankDB?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'DB connection error'))
 db.once('open', async function() {
