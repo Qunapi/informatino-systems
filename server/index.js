@@ -108,11 +108,36 @@ app.post("/clients", async function(req, res) {
         await newDisability.save();
     }
 
-    let newClient = new Client({ Id: uuidv4(), Surname: "Android", Name: "Der"});
+    let newClient = new Client({ 
+        Id: uuidv4(),
+        Surname: clientData.Surname,
+        Name: clientData.Name,
+        MiddleName: clientData.MiddleName,
+        DateOfBirth: clientData.DateOfBirth,
+        PassportSerialNumber: clientData.PassportSerialNumber,
+        PassportNumber: clientData.PassportNumber,
+        PlaceOfIssue: clientData.PlaceOfIssue,
+        DateOfIssue: clientData.DateOfIssue,
+        IdentificationalNumber: clientData.IdentificationalNumber,
+        PlaceOfBirth: clientData.PlaceOfBirth,
+        HomeCity: clientData.HomeCity,
+        HomeAddress: clientData.HomeAddress,
+        HomeTelephone: clientData.HomeTelephone,
+        MobileTelephone: clientData.MobileTelephone,
+        EMail: clientData.EMail,
+        PlaceOfWork: clientData.PlaceOfWork,
+        Position: clientData.Position,
+        FamilyStatus: clientData.FamilyStatus,
+        Citizenship: clientData.Citizenship,
+        Disability: clientData.Disability,
+        IsRetiree: clientData.IsRetiree,
+        Sallary: clientData.Sallary,
+        IsConscript: clientData.IsConscript
+    });
     await newClient.save();
 
+    res.status(200);
     res.send();
-    //res.send({});
 })
 
 app.get("*", function(req, res) {
