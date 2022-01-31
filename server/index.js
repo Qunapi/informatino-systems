@@ -44,13 +44,18 @@ const ClientSchema = new mongoose.Schema(
         IsConscript: Boolean
     },
     { timestamps: true }
-  );
-  const Client = mongoose.model("Clients", ClientSchema);
+); 
+const Client = mongoose.model("Clients", ClientSchema);
 
-  const TypeSchema = new mongoose.Schema(
+const TypeSchema = new mongoose.Schema(
     {
         TypeName: String
     },
     { timestamps: true }
-  );
-  const Type = mongoose.model("Types", TypeSchema);
+);
+const Type = mongoose.model("Types", TypeSchema);
+
+
+app.get("*", function(req, res) {
+    res.send({});
+})
