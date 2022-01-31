@@ -16,4 +16,4 @@ class UserService {
   }
 }
 
-export const userService = new UserService("localhost:3000/clients");
+export const userService = new UserService("localhost:80/clients");
