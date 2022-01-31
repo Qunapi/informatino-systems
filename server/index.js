@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/BankDB', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/myFirstDatabase?retryWrites=true&w=majority/BankDB', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'DB connection error'))
 db.once('open', async function() {
@@ -138,6 +138,24 @@ app.post("/clients", async function(req, res) {
 
     res.status(200);
     res.send();
+})
+
+app.get("/cities", async function(req, res){
+    var cities = await Type.find({TypeGroup: CityGroupNumber});
+    res.status(404);
+    res.send({cities});
+})
+
+app.get("/citizenships", async function(req, res){
+    var citizenships = await Type.find({TypeGroup: CitizenshipGroupNumber});
+    res.status(200);
+    res.send({citizenships});
+})
+
+app.get("/disabilities", async function(req, res){
+    var disabilities = await Type.find({TypeGroup: DisabilityGroupNumber});
+    res.status(200);
+    res.send({disabilities});
 })
 
 app.get("*", function(req, res) {
