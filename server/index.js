@@ -21,6 +21,7 @@ db.once('open', async function() {
 
 const ClientSchema = new mongoose.Schema(
     {
+        Id: String,
         Surname: String,
         Name: String,
         MiddleName: String,
@@ -41,7 +42,7 @@ const ClientSchema = new mongoose.Schema(
         FamilyStatus: String,
         Citizenship: String,
         Disability: String,
-        Retiree: Boolean,
+        IsRetiree: Boolean,
         Sallary: Number,
         IsConscript: Boolean
     },
@@ -51,14 +52,26 @@ const Client = mongoose.model("Clients", ClientSchema);
 
 const TypeSchema = new mongoose.Schema(
     {
+        Id: String,
         TypeName: String
     },
     { timestamps: true }
 );
 const Type = mongoose.model("Types", TypeSchema);
 
-app.post("/clients", function(req, res) {
+app.post("/clients", async function(req, res) {
     console.log(req.body);
+
+    let clientData = req.body;
+    if (clientData.Surname && clientData.Name && clientData.MiddleName && clientData.DateOfBirth && clientData.PassportSerialNumber && clientData.PassportNumber && clientData.PlaceOfIssue 
+        && clientData.DateOfIssue && clientData.IdentificationalNumber && clientData.PlaceOfBirth && clientData.HomeCity && clientData.HomeAddress && clientData.FamilyStatus 
+        && clientData.Citizenship && clientData.Disability && clientData.Retiree  && clientData.IsConscript){
+        
+    }
+
+    let newClient = new Client({ Id: uuidv4(), Surname: "Android", Name: "Der"});
+    await newClient.save();
+
     res.send();
     //res.send({});
 })
