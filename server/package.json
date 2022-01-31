@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +13,10 @@
     "express": "^4.17.2",
     "mongoose": "^6.1.8",
     "nodemon": "^2.0.15",
+    "prettier": "^2.5.1",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "husky": "^7.0.0"
   }
 }
