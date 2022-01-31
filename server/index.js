@@ -8,6 +8,8 @@ const app = express();
 const httpServer = http.Server(app);
 
 httpServer.listen(80);
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/BankDB', { useNewUrlParser: true, useUnifiedTopology: true });
@@ -55,6 +57,11 @@ const TypeSchema = new mongoose.Schema(
 );
 const Type = mongoose.model("Types", TypeSchema);
 
+app.post("/clients", function(req, res) {
+    console.log(req.body);
+    res.send();
+    //res.send({});
+})
 
 app.get("*", function(req, res) {
     res.send({});
