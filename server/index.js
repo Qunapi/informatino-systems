@@ -99,13 +99,13 @@ app.post("/clients", async function(req, res) {
 
     let disabilityId;
     
-    var clientCitizenship = await Type.findOne({TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
-    if (clientCitizenship){
-        citizenshipId = clientCitizenship.Id;
+    var clientDisability = await Type.findOne({TypeGroup: DisabilityGroupNumber, TypeName: clientData.Disability});
+    if (clientDisability){
+        disabilityId = clientDisability.Id;
     }else{
-        citizenshipId = uuidv4();
-        let newCitizenship = new Type({Id: citizenshipId, TypeGroup: CitizenshipGroupNumber, TypeName: clientData.Citizenship});
-        await newCitizenship.save();
+        disabilityId = uuidv4();
+        let newDisability = new Type({Id: disabilityId, TypeGroup: DisabilityGroupNumber, TypeName: clientData.Disability});
+        await newDisability.save();
     }
 
     let newClient = new Client({ Id: uuidv4(), Surname: "Android", Name: "Der"});
