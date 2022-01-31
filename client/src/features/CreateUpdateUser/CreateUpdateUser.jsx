@@ -1,20 +1,27 @@
 import { NavBar } from "../../common/Common";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Grid, Paper, TextField } from "@mui/material";
+import {
+  Button,
+  Checkbox,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import DesktopDatePicker from "@mui/lab/DesktopDatePicker";
 import React from "react";
+import { userService } from "../../services/userService";
 
 export const CreateUpdateUser = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
     control,
   } = useForm();
-  const onSubmit = (data) => console.log(data);
-
-  console.log(watch("example")); // watch input value by passing the name of it
+  const onSubmit = (data) => {
+    userService.createUser(data);
+  };
 
   return (
     <>
@@ -63,10 +70,9 @@ export const CreateUpdateUser = () => {
                 fieldState: { invalid, isTouched, isDirty, error },
                 formState,
               }) => {
-                console.log(value);
                 return (
                   <DesktopDatePicker
-                    label="Date desktop"
+                    label="DateOfBirth"
                     inputFormat="MM/dd/yyyy"
                     onBlur={onBlur}
                     selected={value || {}}
@@ -78,6 +84,194 @@ export const CreateUpdateUser = () => {
               }}
             />
           </Grid>
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PassportSerialNumber")}
+            label="PassportSerialNumber"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PassportNumber")}
+            label="PassportNumber"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PlaceOfIssue")}
+            label="PlaceOfIssue"
+            variant="outlined"
+            required
+          />
+          <Grid sx={{ m: 2 }}>
+            <Controller
+              control={control}
+              name="DateOfIssue"
+              render={({
+                field: { onChange, onBlur, value, name, ref },
+                fieldState: { invalid, isTouched, isDirty, error },
+                formState,
+              }) => {
+                return (
+                  <DesktopDatePicker
+                    label="DateOfIssue"
+                    inputFormat="MM/dd/yyyy"
+                    onBlur={onBlur}
+                    selected={value || {}}
+                    onChange={onChange}
+                    renderInput={(params) => <TextField {...params} />}
+                    inputRef={ref}
+                  />
+                );
+              }}
+            />
+          </Grid>
+          <TextField
+            sx={{ m: 2 }}
+            {...register("IdentificationalNumber")}
+            label="IdentificationalNumber"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PlaceOfBirth")}
+            label="PlaceOfBirth"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("HomeCity")}
+            label="HomeCity"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("HomeAddress")}
+            label="HomeAddress"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("HomeTelephone")}
+            label="HomeTelephone"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("MobileTelephone")}
+            label="MobileTelephone"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("EMail")}
+            label="EMail"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PlaceOfWork")}
+            label="PlaceOfWork"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("Position")}
+            label="Position"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("FamilyStatus")}
+            label="FamilyStatus"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("Citizenship")}
+            label="Citizenship"
+            variant="outlined"
+            required
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("Disability")}
+            label="Disability"
+            variant="outlined"
+            required
+          />
+          <Typography
+            sx={(theme) => ({
+              textDecoration: "none",
+              padding: theme.spacing(2),
+            })}
+            variant="h6"
+            component="div"
+          >
+            IsRetiree
+          </Typography>
+          <Controller
+            control={control}
+            name="IsRetiree"
+            render={({
+              field: { onChange, onBlur, value, name, ref },
+              fieldState: { invalid, isTouched, isDirty, error },
+              formState,
+            }) => (
+              <Checkbox
+                onBlur={onBlur} // notify when input is touched
+                onChange={onChange} // send value to hook form
+                checked={value}
+                inputRef={ref}
+              />
+            )}
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("Sallary")}
+            label="Sallary"
+            variant="outlined"
+            required
+            type="number"
+          />
+          <Typography
+            sx={(theme) => ({
+              textDecoration: "none",
+              padding: theme.spacing(2),
+            })}
+            variant="h6"
+            component="div"
+          >
+            IsConscript
+          </Typography>
+          <Controller
+            control={control}
+            name="IsConscript"
+            render={({
+              field: { onChange, onBlur, value, name, ref },
+              fieldState: { invalid, isTouched, isDirty, error },
+              formState,
+            }) => (
+              <Checkbox
+                onBlur={onBlur} // notify when input is touched
+                onChange={onChange} // send value to hook form
+                checked={value}
+                inputRef={ref}
+              />
+            )}
+          />
           <Button variant="contained" color="success" type="submit">
             Success
           </Button>
@@ -87,6 +281,7 @@ export const CreateUpdateUser = () => {
   );
 };
 
+// Id: String,
 // Surname: String,
 // Name: String,
 // MiddleName: String,
@@ -106,7 +301,7 @@ export const CreateUpdateUser = () => {
 // Position: String,
 // FamilyStatus: String,
 // Citizenship: String,
-// Disability: String,
-// Retiree: Boolean,
+// IsRetiree: Boolean,
+
 // Sallary: Number,
-// IsConscript: Boolean,
+// IsConscript: Boolean
