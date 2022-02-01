@@ -74,7 +74,6 @@ app.post("/clients", async function (req, res) {
 
   let clientData = req.body;
   if (
-    !(
       clientData.Surname &&
       clientData.Name &&
       clientData.MiddleName &&
@@ -92,10 +91,10 @@ app.post("/clients", async function (req, res) {
       clientData.Disability &&
       clientData.Retiree &&
       clientData.IsConscript
-    )
   ) {
     res.status(422);
     res.send();
+    return;
   }
 
   let clientHomeCityId;
