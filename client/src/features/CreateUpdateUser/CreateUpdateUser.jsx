@@ -18,7 +18,33 @@ export const CreateUpdateUser = () => {
     handleSubmit,
     formState: { errors },
     control,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      Surname: "sa",
+      Name: "asdf",
+      MiddleName: "asdf",
+      PassportSerialNumber: "asdfasdf",
+      PassportNumber: "asdf",
+      PlaceOfIssue: "asdf",
+      IdentificationalNumber: "asdf",
+      PlaceOfBirth: "asdf",
+      HomeCity: "asdf",
+      HomeAddress: "asdf",
+      HomeTelephone: "asdf",
+      MobileTelephone: "asdf",
+      EMail: "asdf",
+      PlaceOfWork: "asdf",
+      Position: "asdf",
+      FamilyStatus: "asdf",
+      Citizenship: "asdf",
+      Disability: "asdf",
+      Sallary: "45321",
+      DateOfBirth: "2022-02-03T16:04:31.000Z",
+      DateOfIssue: "2022-02-10T16:04:35.000Z",
+      IsRetiree: true,
+      IsConscript: true,
+    },
+  });
   const onSubmit = (data) => {
     userService.createUser(data);
   };
