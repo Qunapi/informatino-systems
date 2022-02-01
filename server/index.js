@@ -70,8 +70,6 @@ const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
 
 app.post("/clients", async function (req, res) {
-  console.log(req.body);
-
   let clientData = req.body;
   if (
       clientData.Surname &&
@@ -99,41 +97,63 @@ app.post("/clients", async function (req, res) {
 
   let clientHomeCityId;
 
-  var clientHomeCity = await Type.findOne({
-    TypeGroup: CityGroupNumber,
-    TypeName: clientData.HomeCity,
-  });
-  if (clientHomeCity) {
-    clientHomeCityId = clientHomeCity.Id;
-  } else {
-    clientHomeCityId = uuidv4();
-    let newHomeCity = new Type({
-      Id: clientHomeCityId,
-      TypeGroup: CityGroupNumber,
-      TypeName: clientData.HomeCity,
-    });
-    await newHomeCity.save();
+  if (clientData.HomeCity) {
+    var clientHomeCity = await Type.findOne({
+        TypeGroup: CityGroupNumber,
+        TypeName: clientData.HomeCity,
+      });
+      if (clientHomeCity) {
+        clientHomeCityId = clientHomeCity.Id;
+      } else {
+        clientHomeCityId = uuidv4();
+        let newHomeCity = new Type({
+          Id: clientHomeCityId,
+          TypeGroup: CityGroupNumber,
+          TypeName: clientData.HomeCity,
+        });
+        await newHomeCity.save();
+      }
   }
 
   let citizenshipId;
 
-  var clientCitizenship = await Type.findOne({
-    TypeGroup: CitizenshipGroupNumber,
-    TypeName: clientData.Citizenship,
-  });
-  if (clientCitizenship) {
-    citizenshipId = clientCitizenship.Id;
-  } else {
-    citizenshipId = uuidv4();
-    let newCitizenship = new Type({
-      Id: citizenshipId,
-      TypeGroup: CitizenshipGroupNumber,
-      TypeName: clientData.Citizenship,
-    });
-    await newCitizenship.save();
+  if (clientData.Citizenship) {
+    var clientCitizenship = await Type.findOne({
+        TypeGroup: CitizenshipGroupNumber,
+        TypeName: clientData.Citizenship,
+      });
+      if (clientCitizenship) {
+        citizenshipId = clientCitizenship.Id;
+      } else {
+        citizenshipId = uuidv4();
+        let newCitizenship = new Type({
+          Id: citizenshipId,
+          TypeGroup: CitizenshipGroupNumber,
+          TypeName: clientData.Citizenship,
+        });
+        await newCitizenship.save();
+      }
   }
 
   let disabilityId;
+
+  if (clientData.Disability) {
+    var clientDisability = await Type.findOne({
+        TypeGroup: DisabilityGroupNumber,
+        TypeName: clientData.Disability,
+      });
+      if (clientDisability) {
+        disabilityId = clientDisability.Id;
+      } else {
+        disabilityId = uuidv4();
+        let newDisability = new Type({
+          Id: disabilityId,
+          TypeGroup: DisabilityGroupNumber,
+          TypeName: clientData.Disability,
+        });
+        await newDisability.save();
+      }     
+  }
 
   var clientDisability = await Type.findOne({
     TypeGroup: DisabilityGroupNumber,
@@ -201,25 +221,158 @@ app.get("/disabilities", async function (req, res) {
   res.send({ disabilities });
 });
 
-app.get("/users", async function (req, res) {
-    var users = await Client.find();
+app.get("/clients", async function (req, res) {
+    var clients = await Client.find();
     res.status(200);
-    res.send({ users });
+    res.send({ clients });
 });
 
-app.get("/users/:id", async function (req, res) {
-    var user = await Client.findOne({Id: req.params.id});
-    res.status(200);
-    res.send({ user });
+app.get("/clients/:id", async function (req, res) {
+    var client = await Client.findOne({Id: req.params.id});
+    if(client) {
+        res.status(200);
+    } else {
+        res.status(404);
+    }
+    res.send({ client });
 });
 
-app.delete("/users/:id", async function (req, res) {
-    var user = await Client.deleteOne({Id: req.params.id});
-    res.status(200);
-    res.send({ user });
+app.delete("/clients/:id", async function (req, res) {
+    var client = await Client.deleteOne({Id: req.params.id});
+    
+    if (!client){
+        res.status(500);
+    } else if (client.deletedCount == 0) {
+        res.status(404);
+    } else {
+        res.status(200);
+    }
+    res.send({ client });
 });
 
+app.patch("/clients/:id", async function (req, res) {
+    let clientData = req.body;
+    if (
+        clientData.Surname &&
+        clientData.Name &&
+        clientData.MiddleName &&
+        clientData.DateOfBirth &&
+        clientData.PassportSerialNumber &&
+        clientData.PassportNumber &&
+        clientData.PlaceOfIssue &&
+        clientData.DateOfIssue &&
+        clientData.IdentificationalNumber &&
+        clientData.PlaceOfBirth &&
+        clientData.HomeCity &&
+        clientData.HomeAddress &&
+        clientData.FamilyStatus &&
+        clientData.Citizenship &&
+        clientData.Disability &&
+        clientData.Retiree &&
+        clientData.IsConscript
+    ) {
+      res.status(422);
+      res.send();
+      return;
+    }
 
+    var clientToUpdate = await Client.findOne({ Id: req.params.id });
+    if (!clientToUpdate){
+        res.status(404);
+        res.send();
+        return; 
+    }
+  
+    let clientHomeCityId;
+
+    if (clientData.HomeCity) {
+      var clientHomeCity = await Type.findOne({
+          TypeGroup: CityGroupNumber,
+          TypeName: clientData.HomeCity,
+        });
+        if (clientHomeCity) {
+          clientHomeCityId = clientHomeCity.Id;
+        } else {
+          clientHomeCityId = uuidv4();
+          let newHomeCity = new Type({
+            Id: clientHomeCityId,
+            TypeGroup: CityGroupNumber,
+            TypeName: clientData.HomeCity,
+          });
+          await newHomeCity.save();
+        }
+    }
+  
+    let citizenshipId;
+  
+    if (clientData.Citizenship) {
+      var clientCitizenship = await Type.findOne({
+          TypeGroup: CitizenshipGroupNumber,
+          TypeName: clientData.Citizenship,
+        });
+        if (clientCitizenship) {
+          citizenshipId = clientCitizenship.Id;
+        } else {
+          citizenshipId = uuidv4();
+          let newCitizenship = new Type({
+            Id: citizenshipId,
+            TypeGroup: CitizenshipGroupNumber,
+            TypeName: clientData.Citizenship,
+          });
+          await newCitizenship.save();
+        }
+    }
+  
+    let disabilityId;
+  
+    if (clientData.Disability) {
+      var clientDisability = await Type.findOne({
+          TypeGroup: DisabilityGroupNumber,
+          TypeName: clientData.Disability,
+        });
+        if (clientDisability) {
+          disabilityId = clientDisability.Id;
+        } else {
+          disabilityId = uuidv4();
+          let newDisability = new Type({
+            Id: disabilityId,
+            TypeGroup: DisabilityGroupNumber,
+            TypeName: clientData.Disability,
+          });
+          await newDisability.save();
+        }     
+    }
+
+    await Client.replaceOne({Id: req.params.id} ,{
+        Id: req.params.id,
+        Surname: clientData.Surname,
+        Name: clientData.Name,
+        MiddleName: clientData.MiddleName,
+        DateOfBirth: clientData.DateOfBirth,
+        PassportSerialNumber: clientData.PassportSerialNumber,
+        PassportNumber: clientData.PassportNumber,
+        PlaceOfIssue: clientData.PlaceOfIssue,
+        DateOfIssue: clientData.DateOfIssue,
+        IdentificationalNumber: clientData.IdentificationalNumber,
+        PlaceOfBirth: clientData.PlaceOfBirth,
+        HomeCity: clientData.HomeCity,
+        HomeAddress: clientData.HomeAddress,
+        HomeTelephone: clientData.HomeTelephone,
+        MobileTelephone: clientData.MobileTelephone,
+        EMail: clientData.EMail,
+        PlaceOfWork: clientData.PlaceOfWork,
+        Position: clientData.Position,
+        FamilyStatus: clientData.FamilyStatus,
+        Citizenship: clientData.Citizenship,
+        Disability: clientData.Disability,
+        IsRetiree: clientData.IsRetiree,
+        Sallary: clientData.Sallary,
+        IsConscript: clientData.IsConscript,
+      });
+  
+    res.status(200);
+    res.send();
+  });
 
 app.get("*", function (req, res) {
   res.send({});
