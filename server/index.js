@@ -185,7 +185,7 @@ app.post("/clients", async function (req, res) {
 
 app.get("/cities", async function (req, res) {
   var cities = await Type.find({ TypeGroup: CityGroupNumber });
-  res.status(404);
+  res.status(200);
   res.send({ cities });
 });
 
@@ -200,6 +200,26 @@ app.get("/disabilities", async function (req, res) {
   res.status(200);
   res.send({ disabilities });
 });
+
+app.get("/users", async function (req, res) {
+    var users = await Client.find();
+    res.status(200);
+    res.send({ users });
+});
+
+app.get("/users/:id", async function (req, res) {
+    var user = await Client.findOne({Id: req.params.id});
+    res.status(200);
+    res.send({ user });
+});
+
+app.delete("/users/:id", async function (req, res) {
+    var user = await Client.deleteOne({Id: req.params.id});
+    res.status(200);
+    res.send({ user });
+});
+
+
 
 app.get("*", function (req, res) {
   res.send({});
