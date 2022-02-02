@@ -1,17 +1,20 @@
-import { Link } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import { Link, useNavigate } from "react-router-dom";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
 export const NavBar = () => {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton
+            onClick={() => navigate("/")}
             size="large"
             edge="start"
             color="inherit"
@@ -31,11 +34,11 @@ export const NavBar = () => {
 
 const AppLink = ({ children, to }) => {
   return (
-    <Link to={to} component="div" style={{ textDecoration: 'none' }}>
+    <Link to={to} component="div" style={{ textDecoration: "none" }}>
       <Typography
-        sx={theme => ({
-          color: 'white',
-          textDecoration: 'none',
+        sx={(theme) => ({
+          color: "white",
+          textDecoration: "none",
           padding: theme.spacing(2),
         })}
         variant="h6"

@@ -7,51 +7,110 @@ import {
   Paper,
   TextField,
   Typography,
+  CardContent,
+  CardActions,
+  Card,
+  Box,
 } from "@mui/material";
 import DesktopDatePicker from "@mui/lab/DesktopDatePicker";
-import React from "react";
-import { userService } from "../../services/userService";
+import React, { useState } from "react";
+import { useEffect } from "react";
+import { ControlledAutocomplete } from "../../common/AutoComplete";
+import { metaInfoService } from "../../services/metaInfoService";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { USER_VALIDATION_SCHEMA } from "./userValidationSchema";
 
-export const CreateUpdateUser = () => {
+const DEFAULT_VALUES = {
+  Surname: "sa",
+  Name: "asdf",
+  MiddleName: "asdf",
+  PassportSerialNumber: "asdfasdf",
+  PassportNumber: "asdf",
+  PlaceOfIssue: "asdf",
+  IdentificationalNumber: "asdf",
+  PlaceOfBirth: "asdf",
+  HomeAddress: "asdf",
+  HomeTelephone: "asdf",
+  MobileTelephone: "asdf",
+  EMail: "asdf",
+  PlaceOfWork: "asdf",
+  Position: "asdf",
+  FamilyStatus: "asdf",
+  Citizenship: "asdf",
+  Disability: "asdf",
+  Sallary: "45321",
+  DateOfBirth: "2022-02-03T16:04:31.000Z",
+  DateOfIssue: "2022-02-10T16:04:35.000Z",
+  IsRetiree: true,
+  IsConscript: true,
+};
+
+export const CreateUpdateUser = ({
+  defaultValues,
+  onSubmit,
+  options: { citiesOptions, disabilitiesOptions, citizenshipsOptions },
+}) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
   } = useForm({
-    defaultValues: {
-      Surname: "sa",
-      Name: "asdf",
-      MiddleName: "asdf",
-      PassportSerialNumber: "asdfasdf",
-      PassportNumber: "asdf",
-      PlaceOfIssue: "asdf",
-      IdentificationalNumber: "asdf",
-      PlaceOfBirth: "asdf",
-      HomeCity: "asdf",
-      HomeAddress: "asdf",
-      HomeTelephone: "asdf",
-      MobileTelephone: "asdf",
-      EMail: "asdf",
-      PlaceOfWork: "asdf",
-      Position: "asdf",
-      FamilyStatus: "asdf",
-      Citizenship: "asdf",
-      Disability: "asdf",
-      Sallary: "45321",
-      DateOfBirth: "2022-02-03T16:04:31.000Z",
-      DateOfIssue: "2022-02-10T16:04:35.000Z",
-      IsRetiree: true,
-      IsConscript: true,
-    },
+    defaultValues,
+    resolver: yupResolver(USER_VALIDATION_SCHEMA),
   });
-  const onSubmit = (data) => {
-    userService.createUser(data);
+
+  const onFormSubmit = (data) => {
+    onSubmit(data);
   };
+
+  console.log(errors, Object.entries(errors.errors || {}));
 
   return (
     <>
       <NavBar />
+      {errors && (
+        <Card
+          sx={(theme) => ({
+            minWidth: 275,
+            position: "absolute",
+            right: 30,
+            top: 100,
+            border: `1px solid ${theme.palette.error.main}`,
+            maxWidth: 400,
+          })}
+        >
+          <CardContent>
+            {Object.entries(errors || {}).map(([key, value]) => {
+              return (
+                <Typography
+                  // sx={{ fontSize: 14 }}
+                  color="text.primay"
+                  // gutterBottom
+                  variant="body2"
+                  
+                >
+                  {key}: {value.message}
+                </Typography>
+              );
+            })}
+            {/* <Typography variant="h5" component="div">
+            benevolent
+          </Typography>
+          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            adjective
+          </Typography>
+          <Typography variant="body2">
+            well meaning and kindly.
+            <br />
+            {'"a benevolent smile"'}
+          </Typography> */}
+          </CardContent>
+          {/* <CardActions>
+          <Button size="small">Learn More</Button>
+        </CardActions> */}
+        </Card>
+      )}
       <Paper
         sx={(theme) => ({
           margin: theme.spacing(2),
@@ -59,7 +118,7 @@ export const CreateUpdateUser = () => {
         })}
       >
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onFormSubmit)}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -78,14 +137,12 @@ export const CreateUpdateUser = () => {
             {...register("Name")}
             label="Name"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("MiddleName")}
             label="MiddleName"
             variant="outlined"
-            required
           />
           <Grid sx={{ m: 2 }}>
             <Controller
@@ -99,11 +156,12 @@ export const CreateUpdateUser = () => {
                 return (
                   <DesktopDatePicker
                     label="DateOfBirth"
-                    inputFormat="MM/dd/yyyy"
                     onBlur={onBlur}
-                    selected={value || {}}
+                    value={value || {}}
                     onChange={onChange}
-                    renderInput={(params) => <TextField {...params} />}
+                    renderInput={(params) => {
+                      return <TextField {...params} />;
+                    }}
                     inputRef={ref}
                   />
                 );
@@ -115,21 +173,18 @@ export const CreateUpdateUser = () => {
             {...register("PassportSerialNumber")}
             label="PassportSerialNumber"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("PassportNumber")}
             label="PassportNumber"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("PlaceOfIssue")}
             label="PlaceOfIssue"
             variant="outlined"
-            required
           />
           <Grid sx={{ m: 2 }}>
             <Controller
@@ -143,9 +198,8 @@ export const CreateUpdateUser = () => {
                 return (
                   <DesktopDatePicker
                     label="DateOfIssue"
-                    inputFormat="MM/dd/yyyy"
                     onBlur={onBlur}
-                    selected={value || {}}
+                    value={value || {}}
                     onChange={onChange}
                     renderInput={(params) => <TextField {...params} />}
                     inputRef={ref}
@@ -159,84 +213,87 @@ export const CreateUpdateUser = () => {
             {...register("IdentificationalNumber")}
             label="IdentificationalNumber"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("PlaceOfBirth")}
             label="PlaceOfBirth"
             variant="outlined"
-            required
           />
-          <TextField
-            sx={{ m: 2 }}
-            {...register("HomeCity")}
-            label="HomeCity"
-            variant="outlined"
-            required
+          <ControlledAutocomplete
+            control={control}
+            // {...register("HomeCity")}
+            name="HomeCity"
+            options={citiesOptions}
+            getOptionLabel={(option) => `${option.name}`}
+            renderInput={(params) => (
+              <TextField {...params} label="HomeCity" margin="normal" />
+            )}
+            defaultValue={null}
           />
           <TextField
             sx={{ m: 2 }}
             {...register("HomeAddress")}
             label="HomeAddress"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("HomeTelephone")}
             label="HomeTelephone"
             variant="outlined"
-            required
+            type="tel"
           />
           <TextField
             sx={{ m: 2 }}
             {...register("MobileTelephone")}
             label="MobileTelephone"
             variant="outlined"
-            required
+            type="tel"
           />
           <TextField
             sx={{ m: 2 }}
             {...register("EMail")}
             label="EMail"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("PlaceOfWork")}
             label="PlaceOfWork"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("Position")}
             label="Position"
             variant="outlined"
-            required
           />
           <TextField
             sx={{ m: 2 }}
             {...register("FamilyStatus")}
             label="FamilyStatus"
             variant="outlined"
-            required
           />
-          <TextField
-            sx={{ m: 2 }}
-            {...register("Citizenship")}
-            label="Citizenship"
-            variant="outlined"
-            required
+          <ControlledAutocomplete
+            control={control}
+            name="Citizenship"
+            options={disabilitiesOptions}
+            getOptionLabel={(option) => `${option.name}`}
+            renderInput={(params) => (
+              <TextField {...params} label="Citizenship" margin="normal" />
+            )}
+            defaultValue={null}
           />
-          <TextField
-            sx={{ m: 2 }}
-            {...register("Disability")}
-            label="Disability"
-            variant="outlined"
-            required
+          <ControlledAutocomplete
+            control={control}
+            name="Disability"
+            options={citizenshipsOptions}
+            getOptionLabel={(option) => `${option.name}`}
+            renderInput={(params) => (
+              <TextField {...params} label="Disability" margin="normal" />
+            )}
+            defaultValue={null}
           />
           <Typography
             sx={(theme) => ({
@@ -269,7 +326,6 @@ export const CreateUpdateUser = () => {
             {...register("Sallary")}
             label="Sallary"
             variant="outlined"
-            required
             type="number"
           />
           <Typography

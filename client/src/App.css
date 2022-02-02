@@ -36,3 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
+.MuiAutocomplete-root {
+  width: 200px;
+}
