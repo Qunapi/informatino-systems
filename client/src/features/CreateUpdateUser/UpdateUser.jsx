@@ -36,8 +36,7 @@ export const UpdateUser = () => {
       .then((e) => toast.success("user updated"))
       .then((e) => navigate("/users"))
       .catch((e) => {
-        console.log(e);
-        toast.error("update error");
+        toast.error(e?.response?.data?.message || "update error");
       });
   };
 

@@ -1,9 +1,21 @@
 import * as yup from "yup";
 
 export const USER_VALIDATION_SCHEMA = yup.object().shape({
-  Surname: yup.string().trim().required("Surname is required"),
-  Name: yup.string().trim().required("Name is required"),
-  MiddleName: yup.string().trim().required("MiddleName is required"),
+  Surname: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("Surname is required"),
+  Name: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("Name is required"),
+  MiddleName: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("MiddleName is required"),
   PassportSerialNumber: yup
     .string()
     .trim()
