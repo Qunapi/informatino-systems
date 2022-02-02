@@ -1,30 +1,65 @@
 import * as yup from "yup";
 
 export const USER_VALIDATION_SCHEMA = yup.object().shape({
-  Surname: yup.string().required("Surname is required"),
-  Name: yup.string().required("Name is required"),
-  MiddleName: yup.string().required("MiddleName is required"),
+  Surname: yup.string().trim().required("Surname is required"),
+  Name: yup.string().trim().required("Name is required"),
+  MiddleName: yup.string().trim().required("MiddleName is required"),
   PassportSerialNumber: yup
     .string()
+    .trim()
     .required("PassportSerialNumber is required"),
-  PassportNumber: yup.string().required("PassportNumber is required"),
-  PlaceOfIssue: yup.string().required("PlaceOfIssue is required"),
+  PassportNumber: yup
+    .string()
+    .trim()
+    .matches(/^[1-9]{1}[0-9]{6}$/, "PassportNumber is invalid")
+    .required("PassportNumber is required"),
+  PlaceOfIssue: yup.string().trim().required("PlaceOfIssue is required"),
   IdentificationalNumber: yup
     .string()
+    .trim()
+    .matches(
+      /^[1-6]{1}([0][1-9]|[12][0-9]|3[01]){1}([0][1-9]|[1][0-2]){1}([0][1-9]|[1-9][0-9]){1}([ABCKEMH]){1}((00[1-9])|(0[1-9][0-9])|([1-9][1-9][0-9])){1}((PB)|(BA)|(BI)){1}([0-9]){1}$/,
+      "IdentificationalNumber is invalid",
+    )
     .required("IdentificationalNumber is required"),
-  PlaceOfBirth: yup.string().required("PlaceOfBirth is required"),
-  HomeAddress: yup.string().required("HomeAddress is required"),
-  HomeTelephone: yup.string().required("HomeTelephone is required"),
-  MobileTelephone: yup.string().required("MobileTelephone is required"),
-  EMail: yup.string().required("EMail is required"),
-  PlaceOfWork: yup.string().required("PlaceOfWork is required"),
-  Position: yup.string().required("Position is required"),
-  FamilyStatus: yup.string().required("FamilyStatus is required"),
-  Citizenship: yup.string().required("Citizenship is required"),
-  Disability: yup.string().required("Disability is required"),
-  Sallary: yup.string().required("Sallary is required"),
-  DateOfBirth: yup.string().required("DateOfBirth is required"),
-  DateOfIssue: yup.string().required("DateOfIssue is required"),
-  IsRetiree: yup.string().required("IsRetiree is required"),
-  IsConscript: yup.string().required("IsConscript is required"),
+  PlaceOfBirth: yup.string().trim().required("PlaceOfBirth is required"),
+  HomeCity: yup
+    .string()
+    .transform((value) => value?.name)
+    .trim()
+    .typeError("Error: HomeCity is required")
+    .required("HomeCity is required"),
+  HomeAddress: yup.string().trim().required("HomeAddress is required"),
+  HomeTelephone: yup
+    .string()
+    .trim()
+    .matches(/^[1-9]{1}[0-9]{6}$/, "HomeTelephone is invalid"),
+  MobileTelephone: yup
+    .string()
+    .trim()
+    .matches(
+      /^(\+375){1}((25)|(29)|(33)|(44)){1}([1-9][0-9]{6}){1}$/,
+      "MobileTelephone is invalid",
+    ),
+  EMail: yup.string().trim().email(),
+  PlaceOfWork: yup.string().trim(),
+  Position: yup.string().trim(),
+  FamilyStatus: yup.string().trim().required("FamilyStatus is required"),
+  Citizenship: yup
+    .string()
+    .transform((value) => value?.name)
+    .typeError("Error: Citizenship is required")
+    .required("Citizenship is required"),
+  Disability: yup
+    .string()
+    .transform((value) => value?.name)
+    .typeError("Error: Disability is required")
+    .required("Disability is required"),
+  Sallary: yup
+    .number()
+    .transform((value) => (isNaN(value) ? undefined : value)),
+  DateOfBirth: yup.date().required("DateOfBirth is required"),
+  DateOfIssue: yup.date().required("DateOfIssue is required"),
+  IsRetiree: yup.bool().required("IsRetiree is required"),
+  IsConscript: yup.bool().required("IsConscript is required"),
 });

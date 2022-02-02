@@ -32,7 +32,6 @@ export const UpdateUser = () => {
   }, [getUser]);
 
   const onSubmit = (data) => {
-    console.log(data);
     userService
       .updateUser(id, data)
       .then((e) => toast.success("user updated"))

@@ -56,7 +56,7 @@ export const CreateUpdateUser = ({
     formState: { errors },
     control,
   } = useForm({
-    defaultValues,
+    defaultValues: { IsRetiree: false, IsConscript: false, ...defaultValues },
     resolver: yupResolver(USER_VALIDATION_SCHEMA),
   });
 
@@ -64,16 +64,14 @@ export const CreateUpdateUser = ({
     onSubmit(data);
   };
 
-  console.log(errors, Object.entries(errors.errors || {}));
-
   return (
     <>
       <NavBar />
-      {errors && (
+      {!!Object.entries(errors || {}).length && (
         <Card
           sx={(theme) => ({
             minWidth: 275,
-            position: "absolute",
+            position: "fixed",
             right: 30,
             top: 100,
             border: `1px solid ${theme.palette.error.main}`,
@@ -84,11 +82,12 @@ export const CreateUpdateUser = ({
             {Object.entries(errors || {}).map(([key, value]) => {
               return (
                 <Typography
+                  key={key}
                   // sx={{ fontSize: 14 }}
-                  color="text.primay"
+                  // color="text.error"
+                  sx={(theme) => ({ color: theme.palette.error.main })}
                   // gutterBottom
                   variant="body2"
-                  
                 >
                   {key}: {value.message}
                 </Typography>
@@ -157,7 +156,7 @@ export const CreateUpdateUser = ({
                   <DesktopDatePicker
                     label="DateOfBirth"
                     onBlur={onBlur}
-                    value={value || {}}
+                    value={value}
                     onChange={onChange}
                     renderInput={(params) => {
                       return <TextField {...params} />;
@@ -199,7 +198,7 @@ export const CreateUpdateUser = ({
                   <DesktopDatePicker
                     label="DateOfIssue"
                     onBlur={onBlur}
-                    value={value || {}}
+                    value={value}
                     onChange={onChange}
                     renderInput={(params) => <TextField {...params} />}
                     inputRef={ref}
