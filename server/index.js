@@ -5,6 +5,80 @@ var cors = require("cors");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const { Schema } = mongoose;
+const yup = require("yup");
+const { userInfo } = require("os");
+
+const USER_VALIDATION_SCHEMA = yup.object().shape({
+  Surname: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("Surname is required"),
+  Name: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("Name is required"),
+  MiddleName: yup
+    .string()
+    .trim()
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .required("MiddleName is required"),
+  PassportSerialNumber: yup
+    .string()
+    .trim()
+    .required("PassportSerialNumber is required"),
+  PassportNumber: yup
+    .string()
+    .trim()
+    .matches(/^[1-9]{1}[0-9]{6}$/, "PassportNumber is invalid")
+    .required("PassportNumber is required"),
+  PlaceOfIssue: yup.string().trim().required("PlaceOfIssue is required"),
+  IdentificationalNumber: yup
+    .string()
+    .trim()
+    .matches(
+      /^[1-6]{1}([0][1-9]|[12][0-9]|3[01]){1}([0][1-9]|[1][0-2]){1}([0][1-9]|[1-9][0-9]){1}([ABCKEMH]){1}((00[1-9])|(0[1-9][0-9])|([1-9][1-9][0-9])){1}((PB)|(BA)|(BI)){1}([0-9]){1}$/,
+      "IdentificationalNumber is invalid",
+    )
+    .required("IdentificationalNumber is required"),
+  PlaceOfBirth: yup.string().trim().required("PlaceOfBirth is required"),
+  HomeCity: yup
+    .string()
+    .trim()
+    .typeError("Error: HomeCity is required")
+    .required("HomeCity is required"),
+  HomeAddress: yup.string().trim().required("HomeAddress is required"),
+  HomeTelephone: yup
+    .string()
+    .trim()
+    .matches(/^[1-9]{1}[0-9]{6}$/, "HomeTelephone is invalid"),
+  MobileTelephone: yup
+    .string()
+    .trim()
+    .matches(
+      /^(\+375){1}((25)|(29)|(33)|(44)){1}([1-9][0-9]{6}){1}$/,
+      "MobileTelephone is invalid",
+    ),
+  EMail: yup.string().trim().email(),
+  PlaceOfWork: yup.string().trim(),
+  Position: yup.string().trim(),
+  FamilyStatus: yup.string().trim().required("FamilyStatus is required"),
+  Citizenship: yup
+    .string()
+    .typeError("Error: Citizenship is required")
+    .required("Citizenship is required"),
+  Disability: yup
+    .string()
+    .typeError("Error: Disability is required")
+    .required("Disability is required"),
+  Sallary: yup
+    .number(),
+  DateOfBirth: yup.date().required("DateOfBirth is required"),
+  DateOfIssue: yup.date().required("DateOfIssue is required"),
+  IsRetiree: yup.bool().required("IsRetiree is required"),
+  IsConscript: yup.bool().required("IsConscript is required"),
+});
 
 const app = express();
 app.use(cors());
@@ -69,59 +143,15 @@ const CityGroupNumber = 1;
 const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
 
-const IdentificationalNumberRegex = new RegExp('^[1-6]{1}([0][1-9]|[12][0-9]|3[01]){1}([0][1-9]|[1][0-2]){1}([0][1-9]|[1-9][0-9]){1}([ABCKEMH]){1}((00[1-9])|(0[1-9][0-9])|([1-9][1-9][0-9])){1}((PB)|(BA)|(BI)){1}([0-9]){1}$');
-const PassportNumberRegex = new RegExp('^[1-9]{1}[0-9]{6}$');
-const HomeTelephoneRegex = new RegExp('^[1-9]{1}[0-9]{6}$');
-const MobileTelephoneRegex = new RegExp('^(\\+375){1}((25)|(29)|(33)|(44)){1}([1-9][0-9]{6}){1}$');
-
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
-  if (
-      clientData.Surname &&
-      clientData.Name &&
-      clientData.MiddleName &&
-      clientData.DateOfBirth &&
-      clientData.PassportSerialNumber &&
-      clientData.PassportNumber &&
-      clientData.PlaceOfIssue &&
-      clientData.DateOfIssue &&
-      clientData.IdentificationalNumber &&
-      clientData.PlaceOfBirth &&
-      clientData.HomeCity &&
-      clientData.HomeAddress &&
-      clientData.FamilyStatus &&
-      clientData.Citizenship &&
-      clientData.Disability &&
-      clientData.Retiree &&
-      clientData.IsConscript
-  ) {
+
+  try {
+    var s = await USER_VALIDATION_SCHEMA.validate(clientData);
+  } catch (e) {
     res.status(422);
-    res.send({message: "Requried field is missing"});
+    res.send(e.errors);
     return;
-  }
-
-  if (!PassportNumberRegex.test(clientData.PassportNumber)) {
-    res.status(422);
-    res.send({message: "Passport Number is invalid"});
-    return;   
-  }
-
-  if (!IdentificationalNumberRegex.test(clientData.IdentificationalNumber)) {
-    res.status(422);
-    res.send({message: "Identificational Number is invalid"});
-    return;   
-  }
-
-  if (!HomeTelephoneRegex.test(clientData.HomeTelephone)) {
-    res.status(422);
-    res.send({message: "Home Telephone Number is invalid"});
-    return;   
-  }
-
-  if (!MobileTelephoneRegex.test(clientData.MobileTelephone)) {
-    res.status(422);
-    res.send({message: "Mobile Telephone Number is invalid"});
-    return;   
   }
 
   var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
@@ -220,7 +250,7 @@ app.post("/clients", async function (req, res) {
   await newClient.save();
 
   res.status(200);
-  res.send();
+  res.send({newClient});
 });
 
 app.get("/cities", async function (req, res) {
@@ -272,52 +302,13 @@ app.delete("/clients/:id", async function (req, res) {
 
 app.patch("/clients/:id", async function (req, res) {
     let clientData = req.body;
-    if (
-      clientData.Surname &&
-      clientData.Name &&
-      clientData.MiddleName &&
-      clientData.DateOfBirth &&
-      clientData.PassportSerialNumber &&
-      clientData.PassportNumber &&
-      clientData.PlaceOfIssue &&
-      clientData.DateOfIssue &&
-      clientData.IdentificationalNumber &&
-      clientData.PlaceOfBirth &&
-      clientData.HomeCity &&
-      clientData.HomeAddress &&
-      clientData.FamilyStatus &&
-      clientData.Citizenship &&
-      clientData.Disability &&
-      clientData.Retiree &&
-      clientData.IsConscript
-  ) {
+
+  try {
+    var s = await USER_VALIDATION_SCHEMA.validate(clientData);
+  } catch (e) {
     res.status(422);
-    res.send({message: "Requried field is missing"});
+    res.send(e.errors);
     return;
-  }
-
-  if (!PassportNumberRegex.test(clientData.PassportNumber)) {
-    res.status(422);
-    res.send({message: "Passport Number is invalid"});
-    return;   
-  }
-
-  if (!IdentificationalNumberRegex.test(clientData.IdentificationalNumber)) {
-    res.status(422);
-    res.send({message: "Identificational Number is invalid"});
-    return;   
-  }
-
-  if (!HomeTelephoneRegex.test(clientData.HomeTelephone)) {
-    res.status(422);
-    res.send({message: "Home Telephone Number is invalid"});
-    return;   
-  }
-
-  if (!MobileTelephoneRegex.test(clientData.MobileTelephone)) {
-    res.status(422);
-    res.send({message: "Mobile Telephone Number is invalid"});
-    return;   
   }
 
     var clientToUpdate = await Client.findOne({ Id: req.params.id });
@@ -394,7 +385,7 @@ app.patch("/clients/:id", async function (req, res) {
         }     
     }
 
-    await Client.replaceOne({Id: req.params.id} ,{
+    var result = await Client.replaceOne({Id: req.params.id} ,{
         Id: req.params.id,
         Surname: clientData.Surname,
         Name: clientData.Name,
@@ -422,9 +413,5 @@ app.patch("/clients/:id", async function (req, res) {
       });
   
     res.status(200);
-    res.send();
+    res.send({result});
   });
-
-app.get("*", function (req, res) {
-  res.send({});
-});
