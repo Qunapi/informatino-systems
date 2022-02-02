@@ -243,7 +243,6 @@ app.get("/disabilities", async function (req, res) {
 
 app.get("/clients", async function (req, res) {
     var clients = await Client.find().populate("HomeCity").populate("Citizenship").populate("Disability");
-    console.log(clients.HomeCity);
     res.status(200);
     res.send({ clients });
 });
