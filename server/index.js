@@ -124,6 +124,13 @@ app.post("/clients", async function (req, res) {
     return;   
   }
 
+  var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
+  if (client){
+      res.status(422);
+      res.send({message: "Client already exists"});
+      return; 
+  }
+
   let clientHomeCityId;
 
   if (clientData.HomeCity) {
@@ -318,6 +325,13 @@ app.patch("/clients/:id", async function (req, res) {
     if (!clientToUpdate){
         res.status(404);
         res.send();
+        return; 
+    }
+
+    var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
+    if (client){
+        res.status(422);
+        res.send({message: "Client already exists"});
         return; 
     }
   
