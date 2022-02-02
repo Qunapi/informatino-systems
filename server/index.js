@@ -4,6 +4,7 @@ const http = require("http");
 var cors = require("cors");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
+const { Schema } = mongoose;
 
 const app = express();
 app.use(cors());
@@ -37,7 +38,7 @@ const ClientSchema = new mongoose.Schema(
     DateOfIssue: Date,
     IdentificationalNumber: String,
     PlaceOfBirth: String,
-    HomeCity: String,
+    HomeCity: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
     HomeAddress: String,
     HomeTelephone: String,
     MobileTelephone: String,
@@ -45,8 +46,8 @@ const ClientSchema = new mongoose.Schema(
     PlaceOfWork: String,
     Position: String,
     FamilyStatus: String,
-    Citizenship: String,
-    Disability: String,
+    Citizenship: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    Disability: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
     IsRetiree: Boolean,
     Sallary: Number,
     IsConscript: Boolean,
@@ -57,7 +58,6 @@ const Client = mongoose.model("Clients", ClientSchema);
 
 const TypeSchema = new mongoose.Schema(
   {
-    Id: String,
     TypeGroup: Number,
     TypeName: String,
   },
@@ -132,11 +132,11 @@ app.post("/clients", async function (req, res) {
         TypeName: clientData.HomeCity,
       });
       if (clientHomeCity) {
-        clientHomeCityId = clientHomeCity.Id;
+        clientHomeCityId = clientHomeCity._id;
       } else {
-        clientHomeCityId = uuidv4();
+        clientHomeCityId = new mongoose.Types.ObjectId();
         let newHomeCity = new Type({
-          Id: clientHomeCityId,
+          _id: clientHomeCityId,
           TypeGroup: CityGroupNumber,
           TypeName: clientData.HomeCity,
         });
@@ -152,11 +152,11 @@ app.post("/clients", async function (req, res) {
         TypeName: clientData.Citizenship,
       });
       if (clientCitizenship) {
-        citizenshipId = clientCitizenship.Id;
+        citizenshipId = clientCitizenship._id;
       } else {
-        citizenshipId = uuidv4();
+        citizenshipId = new mongoose.Types.ObjectId();
         let newCitizenship = new Type({
-          Id: citizenshipId,
+          _id: citizenshipId,
           TypeGroup: CitizenshipGroupNumber,
           TypeName: clientData.Citizenship,
         });
@@ -172,11 +172,11 @@ app.post("/clients", async function (req, res) {
         TypeName: clientData.Disability,
       });
       if (clientDisability) {
-        disabilityId = clientDisability.Id;
+        disabilityId = clientDisability._id;
       } else {
-        disabilityId = uuidv4();
+        disabilityId = new mongoose.Types.ObjectId();
         let newDisability = new Type({
-          Id: disabilityId,
+          _id: disabilityId,
           TypeGroup: DisabilityGroupNumber,
           TypeName: clientData.Disability,
         });
@@ -189,11 +189,11 @@ app.post("/clients", async function (req, res) {
     TypeName: clientData.Disability,
   });
   if (clientDisability) {
-    disabilityId = clientDisability.Id;
+    disabilityId = clientDisability._id;
   } else {
-    disabilityId = uuidv4();
+    disabilityId = new mongoose.Types.ObjectId();
     let newDisability = new Type({
-      Id: disabilityId,
+      _id: disabilityId,
       TypeGroup: DisabilityGroupNumber,
       TypeName: clientData.Disability,
     });
@@ -212,7 +212,7 @@ app.post("/clients", async function (req, res) {
     DateOfIssue: clientData.DateOfIssue,
     IdentificationalNumber: clientData.IdentificationalNumber,
     PlaceOfBirth: clientData.PlaceOfBirth,
-    HomeCity: clientData.HomeCity,
+    HomeCity: clientHomeCityId,
     HomeAddress: clientData.HomeAddress,
     HomeTelephone: clientData.HomeTelephone,
     MobileTelephone: clientData.MobileTelephone,
@@ -220,8 +220,8 @@ app.post("/clients", async function (req, res) {
     PlaceOfWork: clientData.PlaceOfWork,
     Position: clientData.Position,
     FamilyStatus: clientData.FamilyStatus,
-    Citizenship: clientData.Citizenship,
-    Disability: clientData.Disability,
+    Citizenship: citizenshipId,
+    Disability: disabilityId,
     IsRetiree: clientData.IsRetiree,
     Sallary: clientData.Sallary,
     IsConscript: clientData.IsConscript,
@@ -251,13 +251,14 @@ app.get("/disabilities", async function (req, res) {
 });
 
 app.get("/clients", async function (req, res) {
-    var clients = await Client.find();
+    var clients = await Client.find().populate("HomeCity").populate("Citizenship").populate("Disability");
+    console.log(clients.HomeCity);
     res.status(200);
     res.send({ clients });
 });
 
 app.get("/clients/:id", async function (req, res) {
-    var client = await Client.findOne({Id: req.params.id});
+    var client = await Client.findOne({Id: req.params.id}).populate("HomeCity").populate("Citizenship").populate("Disability");
     if(client) {
         res.status(200);
     } else {
@@ -408,7 +409,7 @@ app.patch("/clients/:id", async function (req, res) {
         DateOfIssue: clientData.DateOfIssue,
         IdentificationalNumber: clientData.IdentificationalNumber,
         PlaceOfBirth: clientData.PlaceOfBirth,
-        HomeCity: clientData.HomeCity,
+        HomeCity: clientHomeCityId,
         HomeAddress: clientData.HomeAddress,
         HomeTelephone: clientData.HomeTelephone,
         MobileTelephone: clientData.MobileTelephone,
@@ -416,8 +417,8 @@ app.patch("/clients/:id", async function (req, res) {
         PlaceOfWork: clientData.PlaceOfWork,
         Position: clientData.Position,
         FamilyStatus: clientData.FamilyStatus,
-        Citizenship: clientData.Citizenship,
-        Disability: clientData.Disability,
+        Citizenship: citizenshipId,
+        Disability: disabilityId,
         IsRetiree: clientData.IsRetiree,
         Sallary: clientData.Sallary,
         IsConscript: clientData.IsConscript,
