@@ -1,13 +1,14 @@
 import axios from "axios";
 
 const createBody = (params) => {
+  console.log({ params });
   return {
     ...params,
-    DateOfBirth: params.DateOfBirth.$d,
-    DateOfIssue: params.DateOfIssue.$d,
-    HomeCity: params.HomeCity?.name,
-    Disability: params.Disability?.name,
-    Citizenship: params.Citizenship?.name,
+    DateOfBirth: params.DateOfBirth,
+    DateOfIssue: params.DateOfIssue,
+    HomeCity: params.HomeCity,
+    Disability: params.Disability,
+    Citizenship: params.Citizenship,
   };
 };
 

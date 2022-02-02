@@ -15,13 +15,12 @@ export const ControlledAutocomplete = ({
   return (
     <Controller
       render={({ field: { onChange, onBlur, value, name, ref }, ...props }) => {
-        const realValue = options.find((e) => e?.name === value?.name);
+        const realValue = options.find((e) => e?.name === value?.name) || null;
 
         return (
           <Autocomplete
             options={options}
             getOptionLabel={getOptionLabel}
-            renderOption={renderOption}
             renderInput={renderInput}
             onChange={(e, data) => onChange(data)}
             value={realValue}
