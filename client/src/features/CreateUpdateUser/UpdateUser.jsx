@@ -14,12 +14,11 @@ export const UpdateUser = () => {
   let navigate = useNavigate();
 
   const getUser = useCallback(async () => {
-    const response = await userService.getUser(id);
-    const { client } = response.data;
+    const client = await userService.getUser(id);
 
     client.DateOfBirth = client.DateOfBirth && new Date(client.DateOfBirth);
     client.DateOfIssue = client.DateOfIssue && new Date(client.DateOfIssue);
-
+    console.log(client);
     client.HomeCity = { name: client.HomeCity };
     client.Citizenship = { name: client.Citizenship };
     client.Disability = { name: client.Disability };
@@ -35,7 +34,11 @@ export const UpdateUser = () => {
     userService
       .updateUser(id, data)
       .then((e) => toast.success("user updated"))
-      .then((e) => navigate("/users"));
+      .then((e) => navigate("/users"))
+      .catch((e) => {
+        console.log(e);
+        toast.error("update error");
+      });
   };
 
   const options = useFormOptions();

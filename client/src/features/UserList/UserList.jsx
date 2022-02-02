@@ -50,8 +50,8 @@ export function DataTable() {
   const [state, setState] = React.useState({});
 
   async function getUsers() {
-    const users = await userService.getUsers();
-    setUsers(users.data.clients.map((user) => ({ ...user, id: user.Id })));
+    const clients = await userService.getUsers();
+    setUsers(clients.map((user) => ({ ...user, id: user.Id })));
   }
 
   React.useEffect(() => {

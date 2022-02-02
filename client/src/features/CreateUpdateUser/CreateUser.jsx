@@ -11,7 +11,11 @@ export const CreateUser = () => {
     userService
       .createUser(data)
       .then((e) => toast.success("user created"))
-      .then((e) => navigate("/users"));
+      .then((e) => navigate("/users"))
+      .catch((e) => {
+        console.log(e);
+        toast.error("create error");
+      });
   };
   const options = useFormOptions();
 
