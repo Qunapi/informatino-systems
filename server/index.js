@@ -69,6 +69,11 @@ const CityGroupNumber = 1;
 const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
 
+const IdentificationalNumberRegex = new RegExp('^[1-6]{1}([0][1-9]|[12][0-9]|3[01]){1}([0][1-9]|[1][0-2]){1}([0][1-9]|[1-9][0-9]){1}([ABCKEMH]){1}((00[1-9])|(0[1-9][0-9])|([1-9][1-9][0-9])){1}((PB)|(BA)|(BI)){1}([0-9]){1}$');
+const PassportNumberRegex = new RegExp('^[1-9]{1}[0-9]{6}$');
+const HomeTelephoneRegex = new RegExp('^[1-9]{1}[0-9]{6}$');
+const MobileTelephoneRegex = new RegExp('^(\\+375){1}((25)|(29)|(33)|(44)){1}([1-9][0-9]{6}){1}$');
+
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
   if (
@@ -91,8 +96,32 @@ app.post("/clients", async function (req, res) {
       clientData.IsConscript
   ) {
     res.status(422);
-    res.send();
+    res.send({message: "Requried field is missing"});
     return;
+  }
+
+  if (!PassportNumberRegex.test(clientData.PassportNumber)) {
+    res.status(422);
+    res.send({message: "Passport Number is invalid"});
+    return;   
+  }
+
+  if (!IdentificationalNumberRegex.test(clientData.IdentificationalNumber)) {
+    res.status(422);
+    res.send({message: "Identificational Number is invalid"});
+    return;   
+  }
+
+  if (!HomeTelephoneRegex.test(clientData.HomeTelephone)) {
+    res.status(422);
+    res.send({message: "Home Telephone Number is invalid"});
+    return;   
+  }
+
+  if (!MobileTelephoneRegex.test(clientData.MobileTelephone)) {
+    res.status(422);
+    res.send({message: "Mobile Telephone Number is invalid"});
+    return;   
   }
 
   let clientHomeCityId;
@@ -253,28 +282,52 @@ app.delete("/clients/:id", async function (req, res) {
 app.patch("/clients/:id", async function (req, res) {
     let clientData = req.body;
     if (
-        clientData.Surname &&
-        clientData.Name &&
-        clientData.MiddleName &&
-        clientData.DateOfBirth &&
-        clientData.PassportSerialNumber &&
-        clientData.PassportNumber &&
-        clientData.PlaceOfIssue &&
-        clientData.DateOfIssue &&
-        clientData.IdentificationalNumber &&
-        clientData.PlaceOfBirth &&
-        clientData.HomeCity &&
-        clientData.HomeAddress &&
-        clientData.FamilyStatus &&
-        clientData.Citizenship &&
-        clientData.Disability &&
-        clientData.Retiree &&
-        clientData.IsConscript
-    ) {
-      res.status(422);
-      res.send();
-      return;
-    }
+      clientData.Surname &&
+      clientData.Name &&
+      clientData.MiddleName &&
+      clientData.DateOfBirth &&
+      clientData.PassportSerialNumber &&
+      clientData.PassportNumber &&
+      clientData.PlaceOfIssue &&
+      clientData.DateOfIssue &&
+      clientData.IdentificationalNumber &&
+      clientData.PlaceOfBirth &&
+      clientData.HomeCity &&
+      clientData.HomeAddress &&
+      clientData.FamilyStatus &&
+      clientData.Citizenship &&
+      clientData.Disability &&
+      clientData.Retiree &&
+      clientData.IsConscript
+  ) {
+    res.status(422);
+    res.send({message: "Requried field is missing"});
+    return;
+  }
+
+  if (!PassportNumberRegex.test(clientData.PassportNumber)) {
+    res.status(422);
+    res.send({message: "Passport Number is invalid"});
+    return;   
+  }
+
+  if (!IdentificationalNumberRegex.test(clientData.IdentificationalNumber)) {
+    res.status(422);
+    res.send({message: "Identificational Number is invalid"});
+    return;   
+  }
+
+  if (!HomeTelephoneRegex.test(clientData.HomeTelephone)) {
+    res.status(422);
+    res.send({message: "Home Telephone Number is invalid"});
+    return;   
+  }
+
+  if (!MobileTelephoneRegex.test(clientData.MobileTelephone)) {
+    res.status(422);
+    res.send({message: "Mobile Telephone Number is invalid"});
+    return;   
+  }
 
     var clientToUpdate = await Client.findOne({ Id: req.params.id });
     if (!clientToUpdate){
