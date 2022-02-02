@@ -184,22 +184,6 @@ app.post("/clients", async function (req, res) {
       }     
   }
 
-  var clientDisability = await Type.findOne({
-    TypeGroup: DisabilityGroupNumber,
-    TypeName: clientData.Disability,
-  });
-  if (clientDisability) {
-    disabilityId = clientDisability._id;
-  } else {
-    disabilityId = new mongoose.Types.ObjectId();
-    let newDisability = new Type({
-      _id: disabilityId,
-      TypeGroup: DisabilityGroupNumber,
-      TypeName: clientData.Disability,
-    });
-    await newDisability.save();
-  }
-
   let newClient = new Client({
     Id: uuidv4(),
     Surname: clientData.Surname,
@@ -345,11 +329,11 @@ app.patch("/clients/:id", async function (req, res) {
           TypeName: clientData.HomeCity,
         });
         if (clientHomeCity) {
-          clientHomeCityId = clientHomeCity.Id;
+          clientHomeCityId = clientHomeCity._id;
         } else {
-          clientHomeCityId = uuidv4();
+          clientHomeCityId = new mongoose.Types.ObjectId();
           let newHomeCity = new Type({
-            Id: clientHomeCityId,
+            _id: clientHomeCityId,
             TypeGroup: CityGroupNumber,
             TypeName: clientData.HomeCity,
           });
@@ -365,11 +349,11 @@ app.patch("/clients/:id", async function (req, res) {
           TypeName: clientData.Citizenship,
         });
         if (clientCitizenship) {
-          citizenshipId = clientCitizenship.Id;
+          citizenshipId = clientCitizenship._id;
         } else {
-          citizenshipId = uuidv4();
+          citizenshipId = new mongoose.Types.ObjectId();
           let newCitizenship = new Type({
-            Id: citizenshipId,
+            _id: citizenshipId,
             TypeGroup: CitizenshipGroupNumber,
             TypeName: clientData.Citizenship,
           });
@@ -385,11 +369,11 @@ app.patch("/clients/:id", async function (req, res) {
           TypeName: clientData.Disability,
         });
         if (clientDisability) {
-          disabilityId = clientDisability.Id;
+          disabilityId = clientDisability._id;
         } else {
-          disabilityId = uuidv4();
+          disabilityId = new mongoose.Types.ObjectId();
           let newDisability = new Type({
-            Id: disabilityId,
+            _id: disabilityId,
             TypeGroup: DisabilityGroupNumber,
             TypeName: clientData.Disability,
           });
