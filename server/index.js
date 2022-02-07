@@ -99,6 +99,29 @@ db.once("open", async function () {
   console.log("-Connected-");
 });
 
+const AccountSchema = new mongoose.Schema(
+  {
+    ClientId: [{ type: Schema.Types.ObjectId, ref: 'Clients'}],
+    AccountNumber: String,
+    AccountCode: String,
+    AccountActiveType: Number,
+    AccountTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    ContractNumber: String,
+    ContractTime: Number,
+    ContractPercent: Number,
+    Credit: Number,
+    Debit: Number,
+    Saldo: Number,
+    IsActive: Boolean,
+    StartDate: Date,
+    EndDate: Date,
+    IsMain: Boolean,
+  },
+  { timestamps: true },
+);
+const Account = mongoose.model("Accounts", AccountSchema);
+
 const ClientSchema = new mongoose.Schema(
   {
     Id: String,
@@ -142,6 +165,23 @@ const Type = mongoose.model("Types", TypeSchema);
 const CityGroupNumber = 1;
 const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
+const AccountTypeGroupNumber = 4;
+const AccountCurrencyTypeGroupNumber = 5;
+
+const CheckKey = "9";
+
+const LegalEntity = 1;
+const IndividualEntrepreneur = 2;
+const Individual = 3;
+const LegalEntityCode = "3012";
+const IndividualEntrepreneurCode = "3013";
+const IndividualCode = "3014";
+
+const DepositAccountCode = "34";
+
+const AccountActiveTypeActive = 1;
+const AccountActiveTypeActivePassive = 2;
+const AccountActiveTypePassive = 3;
 
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
@@ -414,4 +454,102 @@ app.patch("/clients/:id", async function (req, res) {
   
     res.status(200);
     res.send({result});
+  });
+
+  app.post("/account/register/deposit", async function (req, res) {
+    let requestData = req.body;
+
+    var client = await Client.findOne({ PassportSerialNumber: requestData.PassportSerialNumber, PassportNumber: requestData.PassportNumber });
+    if (!client){
+        res.status(422);
+        res.send({message: "Client does not exists"});
+        return; 
+    }
+
+    var accountType = await Type.findOne({TypeGroup: AccountTypeGroupNumber, TypeName: requestData.AccountTypeName});
+    if (!accountType) {
+      res.status(422);
+      res.send({message: "Account Type does not exists"});
+      return; 
+    }
+
+    var currencyType = await Type.findOne({TypeGroup: AccountCurrencyTypeGroupNumber, TypeName: requestData.CurrencyType});
+    if (!currencyType) {
+      res.status(422);
+      res.send({message: "Currency Type does not exists"});
+      return; 
+    }
+
+    var uniqueNumberMain = Math.floor(Math.random() * 99999999).toString() + CheckKey;
+    var uniqueNumber = Math.floor(Math.random() * 99999999).toString() + CheckKey;
+
+    switch (requestData.ClientState) {
+      case LegalEntity:
+        uniqueNumber = LegalEntityCode + uniqueNumber;
+        uniqueNumberMain = LegalEntityCode + uniqueNumberMain;
+        break;
+      case IndividualEntrepreneur:
+        uniqueNumber = IndividualEntrepreneurCode + uniqueNumber;
+        uniqueNumberMain = IndividualEntrepreneurCode + uniqueNumberMain;
+        break;
+      case Individual:
+        uniqueNumber = IndividualCode + uniqueNumber;
+        uniqueNumberMain = IndividualCode + uniqueNumberMain;
+        break;
+    }
+    var ExistingAccount = await Account.findOne({ AccountNumber : uniqueNumber}); 
+    if (ExistingAccount){
+      res.status(500);
+      res.send({message: "Account already exists"});
+      return; 
+    }
+    ExistingAccount = await Account.findOne({ AccountNumber : uniqueNumberMain}); 
+    if (ExistingAccount){
+      res.status(500);
+      res.send({message: "Account already exists"});
+      return; 
+    }
+
+    let newAccount = new Account({
+      ClientId: client._id,
+      AccountNumber: uniqueNumberMain,
+      AccountCode: DepositAccountCode,
+      AccountActiveType: AccountActiveTypePassive,
+      AccountTypeId: accountType._id,
+      AccountCurrencyTypeId: currencyType._id,
+      ContractNumber: requestData.ContractNumber,
+      ContractTime: requestData.ContractTime,
+      ContractPercent: requestData.ContractPercent,
+      // Credit: ,
+      // Debit: ,
+      // Saldo: ,
+      IsActive: true,
+      StartDate: requestData.StartDate,
+      EndDate: requestData.EndDate,
+      IsMain: true,
+    });
+    await newAccount.save();
+
+    let newAccountDeposit = new Account({
+      ClientId: client._id,
+      AccountNumber: uniqueNumber,
+      AccountCode: DepositAccountCode,
+      AccountActiveType: AccountActiveTypePassive,
+      AccountTypeId: accountType._id,
+      AccountCurrencyTypeId: currencyType._id,
+      ContractNumber: requestData.ContractNumber,
+      ContractTime: requestData.ContractTime,
+      ContractPercent: requestData.ContractPercent,
+      Credit: 0,
+      Debit: 0,
+      Saldo: 0,
+      IsActive: true,
+      StartDate: requestData.StartDate,
+      EndDate: requestData.EndDate,
+      IsMain: false,
+    });
+    await newAccountDeposit.save();
+
+    res.status(200);
+    res.send({newAccount});
   });
