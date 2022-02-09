@@ -8,44 +8,32 @@ import {
   TextField,
   Typography,
   CardContent,
-  CardActions,
   Card,
-  Box,
 } from "@mui/material";
 import DesktopDatePicker from "@mui/lab/DesktopDatePicker";
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React from "react";
 import { ControlledAutocomplete } from "../../common/AutoComplete";
-import { metaInfoService } from "../../services/metaInfoService";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { USER_VALIDATION_SCHEMA } from "./userValidationSchema";
+import { ACCOUNT_VALIDATION_SCHEMA } from "./accountValidationSchema";
 
-const DEFAULT_VALUES = {
-  Surname: "sa",
-  Name: "asdf",
-  MiddleName: "asdf",
-  PassportSerialNumber: "asdfasdf",
-  PassportNumber: "asdf",
-  PlaceOfIssue: "asdf",
-  IdentificationalNumber: "asdf",
-  PlaceOfBirth: "asdf",
-  HomeAddress: "asdf",
-  HomeTelephone: "asdf",
-  MobileTelephone: "asdf",
-  EMail: "asdf",
-  PlaceOfWork: "asdf",
-  Position: "asdf",
-  FamilyStatus: "asdf",
-  Citizenship: "asdf",
-  Disability: "asdf",
-  Sallary: "45321",
-  DateOfBirth: "2022-02-03T16:04:31.000Z",
-  DateOfIssue: "2022-02-10T16:04:35.000Z",
-  IsRetiree: true,
-  IsConscript: true,
-};
+// ClientId: [{ type: Schema.Types.ObjectId, ref: 'Clients'}],
+//     AccountNumber: String,
+//     AccountCode: String,
+//     AccountActiveType: Number,
+//     AccountTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+//     AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+//     ContractNumber: String,
+//     ContractTime: Number,
+//     ContractPercent: Number,
+//     Credit: Number,
+//     Debit: Number,
+//     Saldo: Number,
+//     IsActive: Boolean,
+//     StartDate: Date,
+//     EndDate: Date,
+//     IsMain: Boolean,
 
-export const CreateUpdateUser = ({
+export const CreateUpdateAccount = ({
   defaultValues,
   onSubmit,
   options: { citiesOptions, disabilitiesOptions, citizenshipsOptions },
@@ -57,7 +45,7 @@ export const CreateUpdateUser = ({
     control,
   } = useForm({
     defaultValues: { IsRetiree: false, IsConscript: false, ...defaultValues },
-    resolver: yupResolver(USER_VALIDATION_SCHEMA),
+    resolver: yupResolver(ACCOUNT_VALIDATION_SCHEMA),
   });
 
   const onFormSubmit = (data) => {
@@ -361,28 +349,3 @@ export const CreateUpdateUser = ({
     </>
   );
 };
-
-// Id: String,
-// Surname: String,
-// Name: String,
-// MiddleName: String,
-// DateOfBirth: Date,
-// PassportSerialNumber: String,
-// PassportNumber: String,
-// PlaceOfIssue: String,
-// DateOfIssue: Date,
-// IdentificationalNumber: String,
-// PlaceOfBirth: String,
-// HomeCity: String,
-// HomeAddress: String,
-// HomeTelephone: String,
-// MobileTelephone: String,
-// EMail: String,
-// PlaceOfWork: String,
-// Position: String,
-// FamilyStatus: String,
-// Citizenship: String,
-// IsRetiree: Boolean,
-
-// Sallary: Number,
-// IsConscript: Boolean
