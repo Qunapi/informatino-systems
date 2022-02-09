@@ -359,10 +359,12 @@ app.patch("/clients/:id", async function (req, res) {
     }
 
     var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
-    if (client){
+    if (client.PassportNumber != clientData.PassportSerialNumber && client.PassportNumber != clientData.PassportSerialNumber){
+      if (client){
         res.status(422);
         res.send({message: "Client already exists"});
         return; 
+      }
     }
   
     let clientHomeCityId;
