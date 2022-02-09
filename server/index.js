@@ -72,8 +72,7 @@ const USER_VALIDATION_SCHEMA = yup.object().shape({
     .string()
     .typeError("Error: Disability is required")
     .required("Disability is required"),
-  Sallary: yup
-    .number(),
+  Sallary: yup.number(),
   DateOfBirth: yup.date().required("DateOfBirth is required"),
   DateOfIssue: yup.date().required("DateOfIssue is required"),
   IsRetiree: yup.bool().required("IsRetiree is required"),
@@ -101,12 +100,12 @@ db.once("open", async function () {
 
 const AccountSchema = new mongoose.Schema(
   {
-    ClientId: [{ type: Schema.Types.ObjectId, ref: 'Clients'}],
+    ClientId: [{ type: Schema.Types.ObjectId, ref: "Clients" }],
     AccountNumber: String,
     AccountCode: String,
     AccountActiveType: Number,
-    AccountTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
-    AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    AccountTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
     ContractNumber: String,
     ContractTime: Number,
     ContractPercent: Number,
@@ -135,7 +134,7 @@ const ClientSchema = new mongoose.Schema(
     DateOfIssue: Date,
     IdentificationalNumber: String,
     PlaceOfBirth: String,
-    HomeCity: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    HomeCity: [{ type: Schema.Types.ObjectId, ref: "Types" }],
     HomeAddress: String,
     HomeTelephone: String,
     MobileTelephone: String,
@@ -143,8 +142,8 @@ const ClientSchema = new mongoose.Schema(
     PlaceOfWork: String,
     Position: String,
     FamilyStatus: String,
-    Citizenship: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
-    Disability: [{ type: Schema.Types.ObjectId, ref: 'Types'}],
+    Citizenship: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    Disability: [{ type: Schema.Types.ObjectId, ref: "Types" }],
     IsRetiree: Boolean,
     Sallary: Number,
     IsConscript: Boolean,
@@ -194,71 +193,74 @@ app.post("/clients", async function (req, res) {
     return;
   }
 
-  var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
-  if (client){
-      res.status(422);
-      res.send({message: "Client already exists"});
-      return; 
+  var client = await Client.findOne({
+    PassportSerialNumber: clientData.PassportSerialNumber,
+    PassportNumber: clientData.PassportNumber,
+  });
+  if (client) {
+    res.status(422);
+    res.send({ message: "Client already exists" });
+    return;
   }
 
   let clientHomeCityId;
 
   if (clientData.HomeCity) {
     var clientHomeCity = await Type.findOne({
+      TypeGroup: CityGroupNumber,
+      TypeName: clientData.HomeCity,
+    });
+    if (clientHomeCity) {
+      clientHomeCityId = clientHomeCity._id;
+    } else {
+      clientHomeCityId = new mongoose.Types.ObjectId();
+      let newHomeCity = new Type({
+        _id: clientHomeCityId,
         TypeGroup: CityGroupNumber,
         TypeName: clientData.HomeCity,
       });
-      if (clientHomeCity) {
-        clientHomeCityId = clientHomeCity._id;
-      } else {
-        clientHomeCityId = new mongoose.Types.ObjectId();
-        let newHomeCity = new Type({
-          _id: clientHomeCityId,
-          TypeGroup: CityGroupNumber,
-          TypeName: clientData.HomeCity,
-        });
-        await newHomeCity.save();
-      }
+      await newHomeCity.save();
+    }
   }
 
   let citizenshipId;
 
   if (clientData.Citizenship) {
     var clientCitizenship = await Type.findOne({
+      TypeGroup: CitizenshipGroupNumber,
+      TypeName: clientData.Citizenship,
+    });
+    if (clientCitizenship) {
+      citizenshipId = clientCitizenship._id;
+    } else {
+      citizenshipId = new mongoose.Types.ObjectId();
+      let newCitizenship = new Type({
+        _id: citizenshipId,
         TypeGroup: CitizenshipGroupNumber,
         TypeName: clientData.Citizenship,
       });
-      if (clientCitizenship) {
-        citizenshipId = clientCitizenship._id;
-      } else {
-        citizenshipId = new mongoose.Types.ObjectId();
-        let newCitizenship = new Type({
-          _id: citizenshipId,
-          TypeGroup: CitizenshipGroupNumber,
-          TypeName: clientData.Citizenship,
-        });
-        await newCitizenship.save();
-      }
+      await newCitizenship.save();
+    }
   }
 
   let disabilityId;
 
   if (clientData.Disability) {
     var clientDisability = await Type.findOne({
+      TypeGroup: DisabilityGroupNumber,
+      TypeName: clientData.Disability,
+    });
+    if (clientDisability) {
+      disabilityId = clientDisability._id;
+    } else {
+      disabilityId = new mongoose.Types.ObjectId();
+      let newDisability = new Type({
+        _id: disabilityId,
         TypeGroup: DisabilityGroupNumber,
         TypeName: clientData.Disability,
       });
-      if (clientDisability) {
-        disabilityId = clientDisability._id;
-      } else {
-        disabilityId = new mongoose.Types.ObjectId();
-        let newDisability = new Type({
-          _id: disabilityId,
-          TypeGroup: DisabilityGroupNumber,
-          TypeName: clientData.Disability,
-        });
-        await newDisability.save();
-      }     
+      await newDisability.save();
+    }
   }
 
   let newClient = new Client({
@@ -290,7 +292,7 @@ app.post("/clients", async function (req, res) {
   await newClient.save();
 
   res.status(200);
-  res.send({newClient});
+  res.send({ newClient });
 });
 
 app.get("/cities", async function (req, res) {
@@ -312,36 +314,42 @@ app.get("/disabilities", async function (req, res) {
 });
 
 app.get("/clients", async function (req, res) {
-    var clients = await Client.find().populate("HomeCity").populate("Citizenship").populate("Disability");
-    res.status(200);
-    res.send({ clients });
+  var clients = await Client.find()
+    .populate("HomeCity")
+    .populate("Citizenship")
+    .populate("Disability");
+  res.status(200);
+  res.send({ clients });
 });
 
 app.get("/clients/:id", async function (req, res) {
-    var client = await Client.findOne({Id: req.params.id}).populate("HomeCity").populate("Citizenship").populate("Disability");
-    if(client) {
-        res.status(200);
-    } else {
-        res.status(404);
-    }
-    res.send({ client });
+  var client = await Client.findOne({ Id: req.params.id })
+    .populate("HomeCity")
+    .populate("Citizenship")
+    .populate("Disability");
+  if (client) {
+    res.status(200);
+  } else {
+    res.status(404);
+  }
+  res.send({ client });
 });
 
 app.delete("/clients/:id", async function (req, res) {
-    var client = await Client.deleteOne({Id: req.params.id});
-    
-    if (!client){
-        res.status(500);
-    } else if (client.deletedCount == 0) {
-        res.status(404);
-    } else {
-        res.status(200);
-    }
-    res.send({ client });
+  var client = await Client.deleteOne({ Id: req.params.id });
+
+  if (!client) {
+    res.status(500);
+  } else if (client.deletedCount == 0) {
+    res.status(404);
+  } else {
+    res.status(200);
+  }
+  res.send({ client });
 });
 
 app.patch("/clients/:id", async function (req, res) {
-    let clientData = req.body;
+  let clientData = req.body;
 
   try {
     var s = await USER_VALIDATION_SCHEMA.validate(clientData);
@@ -351,207 +359,223 @@ app.patch("/clients/:id", async function (req, res) {
     return;
   }
 
-    var clientToUpdate = await Client.findOne({ Id: req.params.id });
-    if (!clientToUpdate){
-        res.status(404);
-        res.send();
-        return; 
-    }
+  var clientToUpdate = await Client.findOne({ Id: req.params.id });
+  if (!clientToUpdate) {
+    res.status(404);
+    res.send();
+    return;
+  }
 
-    var client = await Client.findOne({ PassportSerialNumber: clientData.PassportSerialNumber, PassportNumber: clientData.PassportNumber });
-    if (client.PassportNumber != clientData.PassportSerialNumber && client.PassportNumber != clientData.PassportSerialNumber){
-      if (client){
-        res.status(422);
-        res.send({message: "Client already exists"});
-        return; 
-      }
+  var client = await Client.findOne({
+    PassportSerialNumber: clientData.PassportSerialNumber,
+    PassportNumber: clientData.PassportNumber,
+  });
+  if (client) {
+    if (req.params.id !== client.Id) {
+      res.status(422);
+      res.send({ message: "Client already exists" });
+      return;
     }
-  
-    let clientHomeCityId;
+  }
 
-    if (clientData.HomeCity) {
-      var clientHomeCity = await Type.findOne({
-          TypeGroup: CityGroupNumber,
-          TypeName: clientData.HomeCity,
-        });
-        if (clientHomeCity) {
-          clientHomeCityId = clientHomeCity._id;
-        } else {
-          clientHomeCityId = new mongoose.Types.ObjectId();
-          let newHomeCity = new Type({
-            _id: clientHomeCityId,
-            TypeGroup: CityGroupNumber,
-            TypeName: clientData.HomeCity,
-          });
-          await newHomeCity.save();
-        }
-    }
-  
-    let citizenshipId;
-  
-    if (clientData.Citizenship) {
-      var clientCitizenship = await Type.findOne({
-          TypeGroup: CitizenshipGroupNumber,
-          TypeName: clientData.Citizenship,
-        });
-        if (clientCitizenship) {
-          citizenshipId = clientCitizenship._id;
-        } else {
-          citizenshipId = new mongoose.Types.ObjectId();
-          let newCitizenship = new Type({
-            _id: citizenshipId,
-            TypeGroup: CitizenshipGroupNumber,
-            TypeName: clientData.Citizenship,
-          });
-          await newCitizenship.save();
-        }
-    }
-  
-    let disabilityId;
-  
-    if (clientData.Disability) {
-      var clientDisability = await Type.findOne({
-          TypeGroup: DisabilityGroupNumber,
-          TypeName: clientData.Disability,
-        });
-        if (clientDisability) {
-          disabilityId = clientDisability._id;
-        } else {
-          disabilityId = new mongoose.Types.ObjectId();
-          let newDisability = new Type({
-            _id: disabilityId,
-            TypeGroup: DisabilityGroupNumber,
-            TypeName: clientData.Disability,
-          });
-          await newDisability.save();
-        }     
-    }
+  let clientHomeCityId;
 
-    var result = await Client.replaceOne({Id: req.params.id} ,{
-        Id: req.params.id,
-        Surname: clientData.Surname,
-        Name: clientData.Name,
-        MiddleName: clientData.MiddleName,
-        DateOfBirth: clientData.DateOfBirth,
-        PassportSerialNumber: clientData.PassportSerialNumber,
-        PassportNumber: clientData.PassportNumber,
-        PlaceOfIssue: clientData.PlaceOfIssue,
-        DateOfIssue: clientData.DateOfIssue,
-        IdentificationalNumber: clientData.IdentificationalNumber,
-        PlaceOfBirth: clientData.PlaceOfBirth,
-        HomeCity: clientHomeCityId,
-        HomeAddress: clientData.HomeAddress,
-        HomeTelephone: clientData.HomeTelephone,
-        MobileTelephone: clientData.MobileTelephone,
-        EMail: clientData.EMail,
-        PlaceOfWork: clientData.PlaceOfWork,
-        Position: clientData.Position,
-        FamilyStatus: clientData.FamilyStatus,
-        Citizenship: citizenshipId,
-        Disability: disabilityId,
-        IsRetiree: clientData.IsRetiree,
-        Sallary: clientData.Sallary,
-        IsConscript: clientData.IsConscript,
+  if (clientData.HomeCity) {
+    var clientHomeCity = await Type.findOne({
+      TypeGroup: CityGroupNumber,
+      TypeName: clientData.HomeCity,
+    });
+    if (clientHomeCity) {
+      clientHomeCityId = clientHomeCity._id;
+    } else {
+      clientHomeCityId = new mongoose.Types.ObjectId();
+      let newHomeCity = new Type({
+        _id: clientHomeCityId,
+        TypeGroup: CityGroupNumber,
+        TypeName: clientData.HomeCity,
       });
-  
-    res.status(200);
-    res.send({result});
-  });
-
-  app.post("/account/register/deposit", async function (req, res) {
-    let requestData = req.body;
-
-    var client = await Client.findOne({ PassportSerialNumber: requestData.PassportSerialNumber, PassportNumber: requestData.PassportNumber });
-    if (!client){
-        res.status(422);
-        res.send({message: "Client does not exists"});
-        return; 
+      await newHomeCity.save();
     }
+  }
 
-    var accountType = await Type.findOne({TypeGroup: AccountTypeGroupNumber, TypeName: requestData.AccountTypeName});
-    if (!accountType) {
-      res.status(422);
-      res.send({message: "Account Type does not exists"});
-      return; 
-    }
+  let citizenshipId;
 
-    var currencyType = await Type.findOne({TypeGroup: AccountCurrencyTypeGroupNumber, TypeName: requestData.CurrencyType});
-    if (!currencyType) {
-      res.status(422);
-      res.send({message: "Currency Type does not exists"});
-      return; 
-    }
-
-    var uniqueNumberMain = Math.floor(Math.random() * 99999999).toString() + CheckKey;
-    var uniqueNumber = Math.floor(Math.random() * 99999999).toString() + CheckKey;
-
-    switch (requestData.ClientState) {
-      case LegalEntity:
-        uniqueNumber = LegalEntityCode + uniqueNumber;
-        uniqueNumberMain = LegalEntityCode + uniqueNumberMain;
-        break;
-      case IndividualEntrepreneur:
-        uniqueNumber = IndividualEntrepreneurCode + uniqueNumber;
-        uniqueNumberMain = IndividualEntrepreneurCode + uniqueNumberMain;
-        break;
-      case Individual:
-        uniqueNumber = IndividualCode + uniqueNumber;
-        uniqueNumberMain = IndividualCode + uniqueNumberMain;
-        break;
-    }
-    var ExistingAccount = await Account.findOne({ AccountNumber : uniqueNumber}); 
-    if (ExistingAccount){
-      res.status(500);
-      res.send({message: "Account already exists"});
-      return; 
-    }
-    ExistingAccount = await Account.findOne({ AccountNumber : uniqueNumberMain}); 
-    if (ExistingAccount){
-      res.status(500);
-      res.send({message: "Account already exists"});
-      return; 
-    }
-
-    let newAccount = new Account({
-      ClientId: client._id,
-      AccountNumber: uniqueNumberMain,
-      AccountCode: DepositAccountCode,
-      AccountActiveType: AccountActiveTypePassive,
-      AccountTypeId: accountType._id,
-      AccountCurrencyTypeId: currencyType._id,
-      ContractNumber: requestData.ContractNumber,
-      ContractTime: requestData.ContractTime,
-      ContractPercent: requestData.ContractPercent,
-      // Credit: ,
-      // Debit: ,
-      // Saldo: ,
-      IsActive: true,
-      StartDate: requestData.StartDate,
-      EndDate: requestData.EndDate,
-      IsMain: true,
+  if (clientData.Citizenship) {
+    var clientCitizenship = await Type.findOne({
+      TypeGroup: CitizenshipGroupNumber,
+      TypeName: clientData.Citizenship,
     });
-    await newAccount.save();
+    if (clientCitizenship) {
+      citizenshipId = clientCitizenship._id;
+    } else {
+      citizenshipId = new mongoose.Types.ObjectId();
+      let newCitizenship = new Type({
+        _id: citizenshipId,
+        TypeGroup: CitizenshipGroupNumber,
+        TypeName: clientData.Citizenship,
+      });
+      await newCitizenship.save();
+    }
+  }
 
-    let newAccountDeposit = new Account({
-      ClientId: client._id,
-      AccountNumber: uniqueNumber,
-      AccountCode: DepositAccountCode,
-      AccountActiveType: AccountActiveTypePassive,
-      AccountTypeId: accountType._id,
-      AccountCurrencyTypeId: currencyType._id,
-      ContractNumber: requestData.ContractNumber,
-      ContractTime: requestData.ContractTime,
-      ContractPercent: requestData.ContractPercent,
-      Credit: 0,
-      Debit: 0,
-      Saldo: 0,
-      IsActive: true,
-      StartDate: requestData.StartDate,
-      EndDate: requestData.EndDate,
-      IsMain: false,
+  let disabilityId;
+
+  if (clientData.Disability) {
+    var clientDisability = await Type.findOne({
+      TypeGroup: DisabilityGroupNumber,
+      TypeName: clientData.Disability,
     });
-    await newAccountDeposit.save();
+    if (clientDisability) {
+      disabilityId = clientDisability._id;
+    } else {
+      disabilityId = new mongoose.Types.ObjectId();
+      let newDisability = new Type({
+        _id: disabilityId,
+        TypeGroup: DisabilityGroupNumber,
+        TypeName: clientData.Disability,
+      });
+      await newDisability.save();
+    }
+  }
 
-    res.status(200);
-    res.send({newAccount});
+  var result = await Client.replaceOne(
+    { Id: req.params.id },
+    {
+      Id: req.params.id,
+      Surname: clientData.Surname,
+      Name: clientData.Name,
+      MiddleName: clientData.MiddleName,
+      DateOfBirth: clientData.DateOfBirth,
+      PassportSerialNumber: clientData.PassportSerialNumber,
+      PassportNumber: clientData.PassportNumber,
+      PlaceOfIssue: clientData.PlaceOfIssue,
+      DateOfIssue: clientData.DateOfIssue,
+      IdentificationalNumber: clientData.IdentificationalNumber,
+      PlaceOfBirth: clientData.PlaceOfBirth,
+      HomeCity: clientHomeCityId,
+      HomeAddress: clientData.HomeAddress,
+      HomeTelephone: clientData.HomeTelephone,
+      MobileTelephone: clientData.MobileTelephone,
+      EMail: clientData.EMail,
+      PlaceOfWork: clientData.PlaceOfWork,
+      Position: clientData.Position,
+      FamilyStatus: clientData.FamilyStatus,
+      Citizenship: citizenshipId,
+      Disability: disabilityId,
+      IsRetiree: clientData.IsRetiree,
+      Sallary: clientData.Sallary,
+      IsConscript: clientData.IsConscript,
+    },
+  );
+
+  res.status(200);
+  res.send({ result });
+});
+
+app.post("/account/register/deposit", async function (req, res) {
+  let requestData = req.body;
+
+  var client = await Client.findOne({
+    PassportSerialNumber: requestData.PassportSerialNumber,
+    PassportNumber: requestData.PassportNumber,
   });
+  if (!client) {
+    res.status(422);
+    res.send({ message: "Client does not exists" });
+    return;
+  }
+
+  var accountType = await Type.findOne({
+    TypeGroup: AccountTypeGroupNumber,
+    TypeName: requestData.AccountTypeName,
+  });
+  if (!accountType) {
+    res.status(422);
+    res.send({ message: "Account Type does not exists" });
+    return;
+  }
+
+  var currencyType = await Type.findOne({
+    TypeGroup: AccountCurrencyTypeGroupNumber,
+    TypeName: requestData.CurrencyType,
+  });
+  if (!currencyType) {
+    res.status(422);
+    res.send({ message: "Currency Type does not exists" });
+    return;
+  }
+
+  var uniqueNumberMain =
+    Math.floor(Math.random() * 99999999).toString() + CheckKey;
+  var uniqueNumber = Math.floor(Math.random() * 99999999).toString() + CheckKey;
+
+  switch (requestData.ClientState) {
+    case LegalEntity:
+      uniqueNumber = LegalEntityCode + uniqueNumber;
+      uniqueNumberMain = LegalEntityCode + uniqueNumberMain;
+      break;
+    case IndividualEntrepreneur:
+      uniqueNumber = IndividualEntrepreneurCode + uniqueNumber;
+      uniqueNumberMain = IndividualEntrepreneurCode + uniqueNumberMain;
+      break;
+    case Individual:
+      uniqueNumber = IndividualCode + uniqueNumber;
+      uniqueNumberMain = IndividualCode + uniqueNumberMain;
+      break;
+  }
+  var ExistingAccount = await Account.findOne({ AccountNumber: uniqueNumber });
+  if (ExistingAccount) {
+    res.status(500);
+    res.send({ message: "Account already exists" });
+    return;
+  }
+  ExistingAccount = await Account.findOne({ AccountNumber: uniqueNumberMain });
+  if (ExistingAccount) {
+    res.status(500);
+    res.send({ message: "Account already exists" });
+    return;
+  }
+
+  let newAccount = new Account({
+    ClientId: client._id,
+    AccountNumber: uniqueNumberMain,
+    AccountCode: DepositAccountCode,
+    AccountActiveType: AccountActiveTypePassive,
+    AccountTypeId: accountType._id,
+    AccountCurrencyTypeId: currencyType._id,
+    ContractNumber: requestData.ContractNumber,
+    ContractTime: requestData.ContractTime,
+    ContractPercent: requestData.ContractPercent,
+    // Credit: ,
+    // Debit: ,
+    // Saldo: ,
+    IsActive: true,
+    StartDate: requestData.StartDate,
+    EndDate: requestData.EndDate,
+    IsMain: true,
+  });
+  await newAccount.save();
+
+  let newAccountDeposit = new Account({
+    ClientId: client._id,
+    AccountNumber: uniqueNumber,
+    AccountCode: DepositAccountCode,
+    AccountActiveType: AccountActiveTypePassive,
+    AccountTypeId: accountType._id,
+    AccountCurrencyTypeId: currencyType._id,
+    ContractNumber: requestData.ContractNumber,
+    ContractTime: requestData.ContractTime,
+    ContractPercent: requestData.ContractPercent,
+    Credit: 0,
+    Debit: 0,
+    Saldo: 0,
+    IsActive: true,
+    StartDate: requestData.StartDate,
+    EndDate: requestData.EndDate,
+    IsMain: false,
+  });
+  await newAccountDeposit.save();
+
+  res.status(200);
+  res.send({ newAccount });
+});
