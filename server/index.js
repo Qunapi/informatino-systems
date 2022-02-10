@@ -100,6 +100,7 @@ db.once("open", async function () {
 
 const AccountSchema = new mongoose.Schema(
   {
+    Id: String,
     ClientId: [{ type: Schema.Types.ObjectId, ref: "Clients" }],
     AccountNumber: String,
     AccountCode: String,
@@ -182,6 +183,10 @@ const AccountActiveTypeActive = 1;
 const AccountActiveTypeActivePassive = 2;
 const AccountActiveTypePassive = 3;
 
+const CurrencyFromPhisicalMoney = "PhisicalMoney";
+const CashRegisterAccountId = "";
+const BankDevelopmentAccountId = "";
+
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
 
@@ -196,6 +201,15 @@ app.post("/clients", async function (req, res) {
   var client = await Client.findOne({
     PassportSerialNumber: clientData.PassportSerialNumber,
     PassportNumber: clientData.PassportNumber,
+  });
+  if (client) {
+    res.status(422);
+    res.send({ message: "Client already exists" });
+    return;
+  }
+
+  client = await Client.findOne({
+    IdentificationalNumber: clientData.IdentificationalNumber
   });
   if (client) {
     res.status(422);
@@ -378,6 +392,17 @@ app.patch("/clients/:id", async function (req, res) {
     }
   }
 
+  client = await Client.findOne({
+    IdentificationalNumber: clientData.IdentificationalNumber
+  });
+  if (client) {
+    if (req.params.id !== client.Id) {
+    res.status(422);
+    res.send({ message: "Client already exists" });
+    return;
+    }
+  }
+
   let clientHomeCityId;
 
   if (clientData.HomeCity) {
@@ -537,6 +562,7 @@ app.post("/account/register/deposit", async function (req, res) {
   }
 
   let newAccount = new Account({
+    Id: uuidv4(),
     ClientId: client._id,
     AccountNumber: uniqueNumberMain,
     AccountCode: DepositAccountCode,
@@ -546,9 +572,9 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
-    // Credit: ,
-    // Debit: ,
-    // Saldo: ,
+    Credit: 0,
+    Debit: 0,
+    Saldo: 0,
     IsActive: true,
     StartDate: requestData.StartDate,
     EndDate: requestData.EndDate,
@@ -557,6 +583,7 @@ app.post("/account/register/deposit", async function (req, res) {
   await newAccount.save();
 
   let newAccountDeposit = new Account({
+    Id: uuidv4(),
     ClientId: client._id,
     AccountNumber: uniqueNumber,
     AccountCode: DepositAccountCode,
@@ -576,6 +603,63 @@ app.post("/account/register/deposit", async function (req, res) {
   });
   await newAccountDeposit.save();
 
+  var cash = requestData.ContractCurrency;
+  var result = ExecuteTransaction(CurrencyFromPhisicalMoney, CashRegisterAccountId, cash);
+  if(!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+  }
+  result = ExecuteTransaction(CashRegisterAccountId, newAccount.Id, cash);
+  if(!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+  }
+  result = ExecuteTransaction(newAccount.Id, BankDevelopmentAccountId, cash);
+  if(!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+  }
+
   res.status(200);
   res.send({ newAccount });
 });
+
+
+function ExecuteTransaction(from, to, value) {
+  if (from != CurrencyFromPhisicalMoney) {
+    var source = Account.findOne({ Id: from});
+    if (!source){
+      return {isSucces : false, error : "Error while executing transaction"};
+    }
+  }
+
+  var destination = Account.findOne({ Id: to});
+  if (!destination){
+    return {isSucces : false, error : "Error while executing transaction"};
+  }
+
+  if (source.Saldo - value < 0) {
+    return {isSucces : false, error : "Not enough money"};
+  }
+
+  if (source.IsActive) {
+    source.Credit = source.Credit + value;
+    source.Saldo = source.Debit - source.Credit;
+  } else {
+    source.Debit = source.Debit + value;
+    source.Saldo = source.Credit - source.Debit;
+  }
+
+  if (destination.IsActive) {
+    destination.Debit = destination.Debit + value;
+    destination.Saldo = destination.Debit - destination.Credit;
+  } else {
+    destination.Credit = destination.Credit + value;
+    destination.Saldo = destination.Credit - destination.Debit;
+  }
+
+  await Account.replaceOne({Id: source.Id}, source);
+  await Account.replaceOne({Id: destination.Id}, destination);
+
+  return {isSucces : true, error : ""};
+}
