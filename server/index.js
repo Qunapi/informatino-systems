@@ -7,6 +7,9 @@ const { v4: uuidv4 } = require("uuid");
 const { Schema } = mongoose;
 const yup = require("yup");
 const { userInfo } = require("os");
+const e = require("express");
+var dayjs = require('dayjs');
+const { off } = require("process");
 
 const USER_VALIDATION_SCHEMA = yup.object().shape({
   Surname: yup
@@ -110,6 +113,7 @@ const AccountSchema = new mongoose.Schema(
     ContractNumber: String,
     ContractTime: Number,
     ContractPercent: Number,
+    ContractStartDeposit: Number,
     Credit: Number,
     Debit: Number,
     Saldo: Number,
@@ -167,6 +171,7 @@ const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
 const AccountTypeGroupNumber = 4;
 const AccountCurrencyTypeGroupNumber = 5;
+const AccountDateGroupNumber = 6;
 
 const CheckKey = "9";
 
@@ -572,6 +577,7 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
+    ContractStartDeposit: requestData.ContractStartDeposit,
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -593,6 +599,7 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
+    ContractStartDeposit: requestData.ContractStartDeposit,
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -603,7 +610,7 @@ app.post("/account/register/deposit", async function (req, res) {
   });
   await newAccountDeposit.save();
 
-  var cash = requestData.ContractCurrency;
+  var cash = requestData.ContractStartDeposit;
   var result = ExecuteTransaction(CurrencyFromPhisicalMoney, CashRegisterAccountId, cash);
   if(!result.isSucces) {
     res.status(500);
@@ -624,18 +631,51 @@ app.post("/account/register/deposit", async function (req, res) {
   res.send({ newAccount });
 });
 
+app.post("/account/close/day", async function (req, res) {
+  var date = await Type.findOne({TypeGroup: AccountDateGroupNumber});
+  date = new Date(date.TypeName);
+  date = date.setDate(date.getDate() + 1);
+
+  var depositTypes = await Type.find({TypeGroup: AccountTypeGroupNumber});
+  var depositTypeRevocate;
+  var depositTypeUrgent;
+  depositTypes.forEach(e => {
+    if (e.TypeName == "Urgent") {
+      depositTypeUrgent = e;
+    }
+    if (e.TypeName == "Revocate") {
+      depositTypeRevocate = e;
+    }
+  });
+
+  var accounts = Account.find();
+  accounts.forEach(element => {
+    if (!element.IsMain) {
+      if (element.accountTypeId == depositTypeUrgent._id) {
+        var contractEndDate = new Date(element.EndDate);
+        if (contractEndDate <= date) {
+          ExecuteTransaction(BankDevelopmentAccountId, element.Id, element.ContractStartDeposit * ((100 + element.ContractPercent) / 100));
+        }      
+      } else {
+
+      }
+    }
+  });
+});
 
 function ExecuteTransaction(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
-    var source = Account.findOne({ Id: from});
+    var source = await Account.findOne({ Id: from});
     if (!source){
       return {isSucces : false, error : "Error while executing transaction"};
     }
   }
 
-  var destination = Account.findOne({ Id: to});
-  if (!destination){
-    return {isSucces : false, error : "Error while executing transaction"};
+  if (to != CurrencyFromPhisicalMoney) {
+    var destination = await Account.findOne({ Id: to});
+    if (!destination){
+      return {isSucces : false, error : "Error while executing transaction"};
+    }
   }
 
   if (source.Saldo - value < 0) {
