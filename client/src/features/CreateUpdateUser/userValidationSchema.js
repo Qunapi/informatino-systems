@@ -9,12 +9,12 @@ export const USER_VALIDATION_SCHEMA = yup.object().shape({
   Name: yup
     .string()
     .trim()
-    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .matches(/^([a-zA-zА-Яа-я])*$/, "Name is invalid")
     .required("Name is required"),
   MiddleName: yup
     .string()
     .trim()
-    .matches(/^([a-zA-zА-Яа-я])*$/, "Surname is invalid")
+    .matches(/^([a-zA-zА-Яа-я])*$/, "MiddleName is invalid")
     .required("MiddleName is required"),
   PassportSerialNumber: yup
     .string()

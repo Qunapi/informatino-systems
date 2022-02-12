@@ -23,8 +23,10 @@ export const NavBar = () => {
           >
             <AccountBalanceIcon />
           </IconButton>
-          <AppLink to="/users">News</AppLink>
-          <AppLink to="/users/create">Create</AppLink>
+          <AppLink to="/users">Users</AppLink>
+          <AppLink to="/users/create">Create User</AppLink>
+          <AppLink to="/accounts">Accounts</AppLink>
+          <AppLink to="/accounts/create">Create Account</AppLink>
           {/* <Button color="inherit">Login</Button> */}
         </Toolbar>
       </AppBar>
