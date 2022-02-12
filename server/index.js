@@ -502,6 +502,18 @@ app.patch("/clients/:id", async function (req, res) {
   res.send({ result });
 });
 
+app.get("/account/types", async function (req, res) {
+  var accountTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
+  res.status(200);
+  res.send({ accountTypes });
+});
+
+app.get("/account/currencies", async function (req, res) {
+  var accountCurrencies = await Type.find({ TypeGroup: AccountCurrencyTypeGroupNumber });
+  res.status(200);
+  res.send({ accountCurrencies });
+});
+
 app.post("/account/register/deposit", async function (req, res) {
   let requestData = req.body;
 
