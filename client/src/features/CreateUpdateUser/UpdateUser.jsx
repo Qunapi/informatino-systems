@@ -18,7 +18,6 @@ export const UpdateUser = () => {
 
     client.DateOfBirth = client.DateOfBirth && new Date(client.DateOfBirth);
     client.DateOfIssue = client.DateOfIssue && new Date(client.DateOfIssue);
-    console.log(client);
     client.HomeCity = { name: client.HomeCity };
     client.Citizenship = { name: client.Citizenship };
     client.Disability = { name: client.Disability };

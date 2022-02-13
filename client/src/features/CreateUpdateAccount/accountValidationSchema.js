@@ -20,11 +20,7 @@ export const ACCOUNT_VALIDATION_SCHEMA = yup.object().shape({
   EndDate: yup.date().required("EndDate is required"),
   ContractTime: yup
     .string()
-    .transform((value) => {
-      const result = value.split(" ")[0];
-      console.log(result);
-      return result;
-    })
+    .transform((value) => value.split(" ")[0])
     .test("> 0", "ContractTime should be > 0", (value) => +value > 0)
     .required("ContractTime should be > 0 days"),
   ContractStartDeposit: yup.string().required("ContractStartDeposit"),

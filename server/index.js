@@ -8,7 +8,7 @@ const { Schema } = mongoose;
 const yup = require("yup");
 const { userInfo } = require("os");
 const e = require("express");
-var dayjs = require('dayjs');
+var dayjs = require("dayjs");
 const { off } = require("process");
 
 const USER_VALIDATION_SCHEMA = yup.object().shape({
@@ -214,7 +214,7 @@ app.post("/clients", async function (req, res) {
   }
 
   client = await Client.findOne({
-    IdentificationalNumber: clientData.IdentificationalNumber
+    IdentificationalNumber: clientData.IdentificationalNumber,
   });
   if (client) {
     res.status(422);
@@ -398,13 +398,13 @@ app.patch("/clients/:id", async function (req, res) {
   }
 
   client = await Client.findOne({
-    IdentificationalNumber: clientData.IdentificationalNumber
+    IdentificationalNumber: clientData.IdentificationalNumber,
   });
   if (client) {
     if (req.params.id !== client.Id) {
-    res.status(422);
-    res.send({ message: "Client already exists" });
-    return;
+      res.status(422);
+      res.send({ message: "Client already exists" });
+      return;
     }
   }
 
@@ -509,7 +509,9 @@ app.get("/account/types", async function (req, res) {
 });
 
 app.get("/account/currencies", async function (req, res) {
-  var accountCurrencies = await Type.find({ TypeGroup: AccountCurrencyTypeGroupNumber });
+  var accountCurrencies = await Type.find({
+    TypeGroup: AccountCurrencyTypeGroupNumber,
+  });
   res.status(200);
   res.send({ accountCurrencies });
 });
@@ -623,35 +625,43 @@ app.post("/account/register/deposit", async function (req, res) {
   await newAccountDeposit.save();
 
   var cash = requestData.ContractStartDeposit;
-  var result = ExecuteTransaction(CurrencyFromPhisicalMoney, CashRegisterAccountId, cash);
-  if(!result.isSucces) {
+  var result = ExecuteTransaction(
+    CurrencyFromPhisicalMoney,
+    CashRegisterAccountId,
+    cash,
+  );
+  if (!result.isSucces) {
     res.status(500);
     res.send({ result });
+    return;
   }
   result = ExecuteTransaction(CashRegisterAccountId, newAccount.Id, cash);
-  if(!result.isSucces) {
+  if (!result.isSucces) {
     res.status(500);
     res.send({ result });
+    return;
   }
   result = ExecuteTransaction(newAccount.Id, BankDevelopmentAccountId, cash);
-  if(!result.isSucces) {
+  if (!result.isSucces) {
     res.status(500);
     res.send({ result });
+    return;
   }
 
   res.status(200);
   res.send({ newAccount });
+  return;
 });
 
 app.post("/account/close/day", async function (req, res) {
-  var date = await Type.findOne({TypeGroup: AccountDateGroupNumber});
+  var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
   date = new Date(date.TypeName);
   date = date.setDate(date.getDate() + 1);
 
-  var depositTypes = await Type.find({TypeGroup: AccountTypeGroupNumber});
+  var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
   var depositTypeRevocate;
   var depositTypeUrgent;
-  depositTypes.forEach(e => {
+  depositTypes.forEach((e) => {
     if (e.TypeName == "Urgent") {
       depositTypeUrgent = e;
     }
@@ -661,15 +671,19 @@ app.post("/account/close/day", async function (req, res) {
   });
 
   var accounts = Account.find();
-  accounts.forEach(element => {
+  accounts.forEach((element) => {
     if (!element.IsMain) {
       if (element.accountTypeId == depositTypeUrgent._id) {
         var contractEndDate = new Date(element.EndDate);
         if (contractEndDate <= date) {
-          ExecuteTransaction(BankDevelopmentAccountId, element.Id, element.ContractStartDeposit * ((100 + element.ContractPercent) / 100));
-        }      
+          ExecuteTransaction(
+            BankDevelopmentAccountId,
+            element.Id,
+            element.ContractStartDeposit *
+              ((100 + element.ContractPercent) / 100),
+          );
+        }
       } else {
-
       }
     }
   });
@@ -677,21 +691,21 @@ app.post("/account/close/day", async function (req, res) {
 
 function ExecuteTransaction(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
-    var source = await Account.findOne({ Id: from});
-    if (!source){
-      return {isSucces : false, error : "Error while executing transaction"};
+    var source = await Account.findOne({ Id: from });
+    if (!source) {
+      return { isSucces: false, error: "Error while executing transaction" };
     }
   }
 
   if (to != CurrencyFromPhisicalMoney) {
-    var destination = await Account.findOne({ Id: to});
-    if (!destination){
-      return {isSucces : false, error : "Error while executing transaction"};
+    var destination = await Account.findOne({ Id: to });
+    if (!destination) {
+      return { isSucces: false, error: "Error while executing transaction" };
     }
   }
 
   if (source.Saldo - value < 0) {
-    return {isSucces : false, error : "Not enough money"};
+    return { isSucces: false, error: "Not enough money" };
   }
 
   if (source.IsActive) {
@@ -710,8 +724,8 @@ function ExecuteTransaction(from, to, value) {
     destination.Saldo = destination.Credit - destination.Debit;
   }
 
-  await Account.replaceOne({Id: source.Id}, source);
-  await Account.replaceOne({Id: destination.Id}, destination);
+  await Account.replaceOne({ Id: source.Id }, source);
+  await Account.replaceOne({ Id: destination.Id }, destination);
 
-  return {isSucces : true, error : ""};
+  return { isSucces: true, error: "" };
 }

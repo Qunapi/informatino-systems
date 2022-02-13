@@ -38,7 +38,6 @@ export const CreateUpdateAccount = ({
 
   const dateDiff = EndDate?.diff(StartDate, "day");
   useEffect(() => {
-    console.log("here", dateDiff);
     setValue("ContractTime", `${dateDiff} days`);
   }, [dateDiff, setValue]);
 
