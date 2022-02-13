@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const createBody = (params) => {
-  console.log({ params });
   return {
     ...params,
     DateOfBirth: params.DateOfBirth,
@@ -27,10 +26,11 @@ class UserService {
     const {
       data: { clients },
     } = await axios.get(this.baseUrl);
-    console.log(clients);
+
     clients.forEach((client) => {
       normalizeUser(client);
     });
+
     return clients;
   }
 
@@ -38,12 +38,15 @@ class UserService {
     const {
       data: { client: user },
     } = await axios.get(`${this.baseUrl}/${id}`);
+
     normalizeUser(user);
+
     return user;
   }
 
   updateUser(id, params) {
     const body = createBody(params);
+
     return axios.patch(`${this.baseUrl}/${id}`, body);
   }
 

@@ -18,6 +18,7 @@ export const useFormOptions = () => {
     }
     getMetaInfo();
   }, []);
+
   const citiesOptions = cities.map((city) => ({ name: city.TypeName }));
   const disabilitiesOptions = disabilities.map((city) => ({
     name: city.TypeName,
