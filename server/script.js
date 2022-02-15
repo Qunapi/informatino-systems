@@ -1,5 +1,6 @@
-const { Schema } = mongoose;
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+const { Schema } = mongoose;
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
@@ -20,8 +21,8 @@ db.once("open", async function () {
     AccountNumber: uniqueNumber,
     AccountCode: "73",
     AccountActiveType: 3,
-    AccountTypeId: 0,
-    AccountCurrencyTypeId: 0,
+    AccountTypeId: null,
+    AccountCurrencyTypeId: null,
     ContractNumber: null,
     ContractTime: 0,
     ContractPercent: 0,
@@ -45,8 +46,8 @@ db.once("open", async function () {
     AccountNumber: uniqueNumber,
     AccountCode: "10",
     AccountActiveType: 1,
-    AccountTypeId: 0,
-    AccountCurrencyTypeId: 0,
+    AccountTypeId: null,
+    AccountCurrencyTypeId: null,
     ContractNumber: null,
     ContractTime: 0,
     ContractPercent: 0,
@@ -87,6 +88,7 @@ currencyType = new Type({
 });
 await currencyType.save();
 
+console.log("Completed");
 });
 
 const AccountSchema = new mongoose.Schema(

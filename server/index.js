@@ -689,7 +689,7 @@ app.post("/account/close/day", async function (req, res) {
   });
 });
 
-function ExecuteTransaction(from, to, value) {
+async function ExecuteTransaction(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
     var source = await Account.findOne({ Id: from });
     if (!source) {
