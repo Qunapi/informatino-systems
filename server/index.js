@@ -114,6 +114,7 @@ const AccountSchema = new mongoose.Schema(
     ContractTime: Number,
     ContractPercent: Number,
     ContractStartDeposit: Number,
+    IncomePerDay: Number,
     Credit: Number,
     Debit: Number,
     Saldo: Number,
@@ -580,6 +581,8 @@ app.post("/account/register/deposit", async function (req, res) {
     return;
   }
 
+  var dateDifference = dayjs(requestData.EndDate).diff(requestData.StartDate, "day");
+
   let newAccount = new Account({
     Id: uuidv4(),
     ClientId: client._id,
@@ -592,6 +595,7 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
     ContractStartDeposit: requestData.ContractStartDeposit,
+    IncomePerDay: requestData.ContractStartDeposit / dateDifference,
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -614,6 +618,7 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
     ContractStartDeposit: requestData.ContractStartDeposit,
+    IncomePerDay: requestData.ContractStartDeposit / dateDifference,
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -656,7 +661,7 @@ app.post("/account/register/deposit", async function (req, res) {
 app.post("/account/close/day", async function (req, res) {
   var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
   date = new Date(Number(date.TypeName));
-  date = date.setDate(date.getDate() + 1);
+  date = new Date(date.setDate(date.getDate() + 1));
   await Type.replaceOne({ TypeGroup: AccountDateGroupNumber }, { TypeGroup: AccountDateGroupNumber, TypeName: date});
 
   var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
@@ -672,14 +677,25 @@ app.post("/account/close/day", async function (req, res) {
   });
 
   var accounts = await Account.find();
-  accounts.forEach(e => {
-    if (e.IsMain) {
-
-    } else {
-
+  accounts.forEach(async (e) => {
+    if (e.IsActive && e.Id != BankDevelopmentAccountId && e.Id != CashRegisterAccountId) {
+      if (e.IsMain) {
+        var result = await MainAccountEndDay(e, date);
+        if (!result.isSucces){
+          res.status(500);
+          res.send({ result });
+          return;
+        } 
+      } else {
+        var result = await SecondAccountEndDay(e, date);
+        if (!result.isSucces){
+          res.status(500);
+          res.send({ result });
+          return;
+        } 
+      }
     }
   });
-  console.log(accounts);
 
   // var accounts = Account.find();
   // accounts.forEach((element) => {
@@ -700,19 +716,53 @@ app.post("/account/close/day", async function (req, res) {
   // });
 
   res.send();
-
 });
 
 async function MainAccountEndDay(account, date) {
-  if (account.EndDate == date) {
-
+  if (account.EndDate >= date) {
+    account.IsActive = false;
+    var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.ContractStartDeposit);
+    if (!result.isSucces){
+      return result;
+    }
+    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, account.ContractStartDeposit);
+    if (!result.isSucces){
+      return result;
+    }
+    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, account.ContractStartDeposit);
+    if (!result.isSucces){
+      return result;
+    }
+    await Account.replaceOne({ Id: account.Id }, account);
   }
+
+  return { isSucces: true, error: "" };
 }
 
-async function SecondAccountEndDay() {
+async function SecondAccountEndDay(account, date) {
+  var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.IncomePerDay);
+  if (!result.isSucces){
+    return result;
+  }
+  console.log(date);
+  if (date.getDate() == 1) {
+    var cash = account.Saldo;
+    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
+    if (!result.isSucces){
+      return result;
+    }
+    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash);
+    if (!result.isSucces){
+      return result;
+    }
+  }
+  if (account.EndDate >= date) {
+    account.IsActive = false;
+  }
+  await Account.replaceOne({ Id: account.Id }, account);
 
+  return { isSucces: true, error: "" };
 }
-
 
 async function ExecuteTransactionAsync(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
@@ -741,20 +791,21 @@ async function ExecuteTransactionAsync(from, to, value) {
       source.Debit = source.Debit + value;
       source.Saldo = source.Credit - source.Debit;
     }
-  }
 
-  if (destination.IsActive) {
-    destination.Debit = destination.Debit + value;
-    destination.Saldo = destination.Debit - destination.Credit;
-  } else {
-    destination.Credit = destination.Credit + value;
-    destination.Saldo = destination.Credit - destination.Debit;
-  }
-
-  if (from != CurrencyFromPhisicalMoney) {
     await Account.replaceOne({ Id: source.Id }, source);
   }
-  await Account.replaceOne({ Id: destination.Id }, destination);
+
+  if (to != CurrencyFromPhisicalMoney) {
+    if (destination.IsActive) {
+      destination.Debit = destination.Debit + value;
+      destination.Saldo = destination.Debit - destination.Credit;
+    } else {
+      destination.Credit = destination.Credit + value;
+      destination.Saldo = destination.Credit - destination.Debit;
+    }
+
+    await Account.replaceOne({ Id: destination.Id }, destination);
+  }
 
   return { isSucces: true, error: "" };
 }
