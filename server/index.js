@@ -625,7 +625,7 @@ app.post("/account/register/deposit", async function (req, res) {
   await newAccountDeposit.save();
 
   var cash = requestData.ContractStartDeposit;
-  var result = ExecuteTransaction(
+  var result = await ExecuteTransactionAsync(
     CurrencyFromPhisicalMoney,
     CashRegisterAccountId,
     cash,
@@ -635,13 +635,13 @@ app.post("/account/register/deposit", async function (req, res) {
     res.send({ result });
     return;
   }
-  result = ExecuteTransaction(CashRegisterAccountId, newAccount.Id, cash);
+  result = await ExecuteTransactionAsync(CashRegisterAccountId, newAccount.Id, cash);
   if (!result.isSucces) {
     res.status(500);
     res.send({ result });
     return;
   }
-  result = ExecuteTransaction(newAccount.Id, BankDevelopmentAccountId, cash);
+  result = await ExecuteTransactionAsync(newAccount.Id, BankDevelopmentAccountId, cash);
   if (!result.isSucces) {
     res.status(500);
     res.send({ result });
@@ -714,7 +714,7 @@ async function SecondAccountEndDay() {
 }
 
 
-async function ExecuteTransaction(from, to, value) {
+async function ExecuteTransactionAsync(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
     var source = await Account.findOne({ Id: from });
     if (!source) {
@@ -729,16 +729,18 @@ async function ExecuteTransaction(from, to, value) {
     }
   }
 
-  if (source.Saldo - value < 0) {
-    return { isSucces: false, error: "Not enough money" };
-  }
-
-  if (source.IsActive) {
-    source.Credit = source.Credit + value;
-    source.Saldo = source.Debit - source.Credit;
-  } else {
-    source.Debit = source.Debit + value;
-    source.Saldo = source.Credit - source.Debit;
+  if (from != CurrencyFromPhisicalMoney) {
+    if (source.Saldo - value < 0) {
+      return { isSucces: false, error: "Not enough money" };
+    }
+  
+    if (source.IsActive) {
+      source.Credit = source.Credit + value;
+      source.Saldo = source.Debit - source.Credit;
+    } else {
+      source.Debit = source.Debit + value;
+      source.Saldo = source.Credit - source.Debit;
+    }
   }
 
   if (destination.IsActive) {
@@ -749,7 +751,9 @@ async function ExecuteTransaction(from, to, value) {
     destination.Saldo = destination.Credit - destination.Debit;
   }
 
-  await Account.replaceOne({ Id: source.Id }, source);
+  if (from != CurrencyFromPhisicalMoney) {
+    await Account.replaceOne({ Id: source.Id }, source);
+  }
   await Account.replaceOne({ Id: destination.Id }, destination);
 
   return { isSucces: true, error: "" };
