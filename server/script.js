@@ -28,9 +28,9 @@ db.once("open", async function () {
     ContractPercent: 0,
     ContractStartDeposit: 0,
     IncomePerDay: 0,
-    Credit: 0,
+    Credit: 100000000000,
     Debit: 0,
-    Saldo: 0,
+    Saldo: 100000000000,
     IsActive: true,
     StartDate: 0,
     EndDate: 0,
@@ -85,27 +85,27 @@ db.once("open", async function () {
   var date = new Date();
   newType = new Type({
       TypeGroup: 6,
-      TypeName: date
+      TypeName: date.toUTCString()
   });
   await newType.save();
 
-  newType = new Type({
+  var newCity = new Type({
     TypeGroup: 1,
     TypeName: "Minsk"
   });
-  await newType.save();
+  await newCity.save();
 
-  newType = new Type({
+  var newCitizenship = new Type({
     TypeGroup: 2,
     TypeName: "Belarus"
   });
-  await newType.save();
+  await newCitizenship.save();
 
-  newType = new Type({
+  var newDisability = new Type({
     TypeGroup: 3,
     TypeName: "None"
   });
-  await newType.save();
+  await newDisability.save();
 
   let newClient = new Client({
     Id: "8c8e7386-b764-4ba7-96b4-341a6c027126",
@@ -119,7 +119,7 @@ db.once("open", async function () {
     DateOfIssue: "2022-02-01T16:09:16.000+00:00",
     IdentificationalNumber: "1310399A090PB9",
     PlaceOfBirth: "Minsk",
-    HomeCity: "Minsk",
+    HomeCity: newCity._id,
     HomeAddress: "Surganova",
     HomeTelephone: "3234323",
     MobileTelephone: "+375293562907",
@@ -127,8 +127,8 @@ db.once("open", async function () {
     PlaceOfWork: "Epam",
     Position: "Lead",
     FamilyStatus: "Divorced",
-    Citizenship: "Belarus",
-    Disability: "None",
+    Citizenship: newCitizenship._id,
+    Disability: newDisability._id,
     IsRetiree: false,
     Sallary: "4321",
     IsConscript: true,

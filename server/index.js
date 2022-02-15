@@ -660,9 +660,9 @@ app.post("/account/register/deposit", async function (req, res) {
 
 app.post("/account/close/day", async function (req, res) {
   var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
-  date = new Date(Number(date.TypeName));
+  date = new Date(date.TypeName);
   date = new Date(date.setDate(date.getDate() + 1));
-  await Type.replaceOne({ TypeGroup: AccountDateGroupNumber }, { TypeGroup: AccountDateGroupNumber, TypeName: date});
+  await Type.replaceOne({ TypeGroup: AccountDateGroupNumber }, { TypeGroup: AccountDateGroupNumber, TypeName: date.toUTCString()});
 
   var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
   var depositTypeRevocate;
@@ -719,8 +719,10 @@ app.post("/account/close/day", async function (req, res) {
 });
 
 async function MainAccountEndDay(account, date) {
-  if (account.EndDate >= date) {
+  if (new Date(account.EndDate) < date) {
     account.IsActive = false;
+    await Account.replaceOne({ Id: account.Id }, account);
+
     var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.ContractStartDeposit);
     if (!result.isSucces){
       return result;
@@ -733,18 +735,21 @@ async function MainAccountEndDay(account, date) {
     if (!result.isSucces){
       return result;
     }
-    await Account.replaceOne({ Id: account.Id }, account);
   }
 
   return { isSucces: true, error: "" };
 }
 
 async function SecondAccountEndDay(account, date) {
+  if (new Date(account.EndDate) < date) {
+    account.IsActive = false;
+    await Account.replaceOne({ Id: account.Id }, account);
+  }
+
   var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.IncomePerDay);
   if (!result.isSucces){
     return result;
   }
-  console.log(date);
   if (date.getDate() == 1) {
     var cash = account.Saldo;
     result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
@@ -756,10 +761,6 @@ async function SecondAccountEndDay(account, date) {
       return result;
     }
   }
-  if (account.EndDate >= date) {
-    account.IsActive = false;
-  }
-  await Account.replaceOne({ Id: account.Id }, account);
 
   return { isSucces: true, error: "" };
 }
@@ -784,7 +785,7 @@ async function ExecuteTransactionAsync(from, to, value) {
       return { isSucces: false, error: "Not enough money" };
     }
   
-    if (source.IsActive) {
+    if (source.AccountActiveType == AccountActiveTypeActive) {
       source.Credit = source.Credit + value;
       source.Saldo = source.Debit - source.Credit;
     } else {
@@ -796,7 +797,7 @@ async function ExecuteTransactionAsync(from, to, value) {
   }
 
   if (to != CurrencyFromPhisicalMoney) {
-    if (destination.IsActive) {
+    if (destination.AccountActiveType == AccountActiveTypeActive) {
       destination.Debit = destination.Debit + value;
       destination.Saldo = destination.Debit - destination.Credit;
     } else {
