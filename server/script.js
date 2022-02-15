@@ -16,7 +16,7 @@ db.once("open", async function () {
   uniqueNumber = "7327" + uniqueNumber + "9";
 
   let newBankDevelopmentAccount = new Account({
-    Id: uuidv4(),
+    Id: "61ef1321-a92c-4e6a-b8f4-86c9af319e10",
     ClientId: null,
     AccountNumber: uniqueNumber,
     AccountCode: "73",
@@ -41,7 +41,7 @@ db.once("open", async function () {
   uniqueNumber = "1010" + uniqueNumber + "9";
 
   let newBankCashRegisterAccount = new Account({
-    Id: uuidv4(),
+    Id: "0ea9555e-9968-460b-8b15-660c62ecb3de",
     ClientId: null,
     AccountNumber: uniqueNumber,
     AccountCode: "10",
@@ -70,13 +70,13 @@ db.once("open", async function () {
 
   currencyType = new Type({
     TypeGroup: 4,
-    TypeName: "Urgent deposit"
+    TypeName: "Urgent"
 });
 await currencyType.save();
 
 currencyType = new Type({
     TypeGroup: 4,
-    TypeName: "Revocate deposit"
+    TypeName: "Revocate"
 });
 await currencyType.save();
 
@@ -84,7 +84,7 @@ var date = new Date();
 
 currencyType = new Type({
     TypeGroup: 6,
-    TypeName: date.toString()
+    TypeName: date
 });
 await currencyType.save();
 

@@ -189,8 +189,8 @@ const AccountActiveTypeActivePassive = 2;
 const AccountActiveTypePassive = 3;
 
 const CurrencyFromPhisicalMoney = "PhisicalMoney";
-const CashRegisterAccountId = "";
-const BankDevelopmentAccountId = "";
+const CashRegisterAccountId = "0ea9555e-9968-460b-8b15-660c62ecb3de";
+const BankDevelopmentAccountId = "61ef1321-a92c-4e6a-b8f4-86c9af319e10";
 
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
@@ -655,8 +655,9 @@ app.post("/account/register/deposit", async function (req, res) {
 
 app.post("/account/close/day", async function (req, res) {
   var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
-  date = new Date(date.TypeName);
+  date = new Date(Number(date.TypeName));
   date = date.setDate(date.getDate() + 1);
+  await Type.replaceOne({ TypeGroup: AccountDateGroupNumber }, { TypeGroup: AccountDateGroupNumber, TypeName: date});
 
   var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
   var depositTypeRevocate;
@@ -670,24 +671,48 @@ app.post("/account/close/day", async function (req, res) {
     }
   });
 
-  var accounts = Account.find();
-  accounts.forEach((element) => {
-    if (!element.IsMain) {
-      if (element.accountTypeId == depositTypeUrgent._id) {
-        var contractEndDate = new Date(element.EndDate);
-        if (contractEndDate <= date) {
-          ExecuteTransaction(
-            BankDevelopmentAccountId,
-            element.Id,
-            element.ContractStartDeposit *
-              ((100 + element.ContractPercent) / 100),
-          );
-        }
-      } else {
-      }
+  var accounts = await Account.find();
+  accounts.forEach(e => {
+    if (e.IsMain) {
+
+    } else {
+
     }
   });
+  console.log(accounts);
+
+  // var accounts = Account.find();
+  // accounts.forEach((element) => {
+  //   if (!element.IsMain) {
+  //     if (element.accountTypeId == depositTypeUrgent._id) {
+  //       var contractEndDate = new Date(element.EndDate);
+  //       if (contractEndDate <= date) {
+  //         ExecuteTransaction(
+  //           BankDevelopmentAccountId,
+  //           element.Id,
+  //           element.ContractStartDeposit *
+  //             ((100 + element.ContractPercent) / 100),
+  //         );
+  //       }
+  //     } else {
+  //     }
+  //   }
+  // });
+
+  res.send();
+
 });
+
+async function MainAccountEndDay(account, date) {
+  if (account.EndDate == date) {
+
+  }
+}
+
+async function SecondAccountEndDay() {
+
+}
+
 
 async function ExecuteTransaction(from, to, value) {
   if (from != CurrencyFromPhisicalMoney) {
