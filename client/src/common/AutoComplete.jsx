@@ -20,8 +20,9 @@ export const ControlledAutocomplete = ({
         formState,
         ...props
       }) => {
-        const realValue = options.find((e) => e?.name === value?.name) || null;
-
+        const realValue =
+          options.find((e) => e?.value === value?.value) || null;
+        console.log(realValue);
         return (
           <Autocomplete
             options={options}

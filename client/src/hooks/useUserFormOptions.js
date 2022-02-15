@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { metaInfoService } from "../services/metaInfoService";
 
-export const useFormOptions = () => {
+export const useUserFormOptions = () => {
   const [cities, setCities] = useState([]);
   const [citizenships, setCitizenships] = useState([]);
   const [disabilities, setDisabilities] = useState([]);

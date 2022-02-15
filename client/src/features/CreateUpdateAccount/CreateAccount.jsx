@@ -1,9 +1,13 @@
+import { useAccountFormOptions } from "../../hooks/useAccountFormOptions";
+import { accountService } from "../../services/accountService";
 import { CreateUpdateAccount } from "./CreateUpdateAccount";
 
 export const CreateAccount = () => {
   const onSubmit = (data) => {
-    console.log(data);
+    accountService.createAccount(data);
   };
 
-  return <CreateUpdateAccount onSubmit={onSubmit} />;
+  const options = useAccountFormOptions();
+
+  return <CreateUpdateAccount options={options} onSubmit={onSubmit} />;
 };

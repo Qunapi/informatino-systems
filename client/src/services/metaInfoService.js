@@ -16,6 +16,14 @@ class MetaInfoService {
   getDisabilities() {
     return axios.get(`${this.baseUrl}/disabilities`);
   }
+
+  getAccountTypes() {
+    return axios.get(`${this.baseUrl}/account/types`);
+  }
+
+  getCurrencyTypes() {
+    return axios.get(`${this.baseUrl}/account/currencies`);
+  }
 }
 
 export const metaInfoService = new MetaInfoService({

@@ -10,13 +10,22 @@ import { DatePicker } from "../../common/DatePicker";
 import * as dayjs from "dayjs";
 import { useEffect } from "react";
 
+// PassportSerialNumber
+// PassportNumber
+// AccountTypeName
+// CurrencyType! account/currencies
+// ClientState!
+// ContractNumber!
+// ContractTime
+// ContractPercent
+// ContractStartDeposit
+// StartDate
+// EndDate
+
 export const CreateUpdateAccount = ({
   defaultValues,
   onSubmit,
-  options: {
-    depositTypes = [{ name: "deposit 15%", value: "id" }],
-    currencyTypes = [{ name: "$%", value: "id" }],
-  } = {},
+  options: { depositOptions = [], currencyOptions = [] } = {},
 }) => {
   const {
     register,
@@ -31,6 +40,7 @@ export const CreateUpdateAccount = ({
   });
 
   const onFormSubmit = (data) => {
+    console.log(data);
     onSubmit(data);
   };
 
@@ -61,31 +71,49 @@ export const CreateUpdateAccount = ({
         >
           <ControlledAutocomplete
             control={control}
-            name="AccountTypeId"
-            options={depositTypes}
-            getOptionLabel={(option) => `${option.name}`}
+            name="AccountTypeName"
+            options={depositOptions}
             renderInput={(params) => (
-              <TextField {...params} label="AccountTypeId" margin="normal" />
+              <TextField {...params} label="AccountTypeName" margin="normal" />
             )}
             defaultValue={null}
           />
           <TextField
             sx={{ m: 2 }}
-            {...register("AccountNumber")}
-            label="AccountNumber"
+            {...register("ContractNumber")}
+            label="ContractNumber"
+            variant="outlined"
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PassportSerialNumber")}
+            label="PassportSerialNumber"
+            variant="outlined"
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("PassportNumber")}
+            label="PassportNumber"
+            variant="outlined"
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("ClientState")}
+            label="ClientState"
+            variant="outlined"
+          />
+          <TextField
+            sx={{ m: 2 }}
+            {...register("ContractNumber")}
+            label="ContractNumber"
             variant="outlined"
           />
           <ControlledAutocomplete
             control={control}
-            name="AccountCurrencyTypeId"
-            options={currencyTypes}
-            getOptionLabel={(option) => `${option.name}`}
+            name="CurrencyType"
+            options={currencyOptions}
             renderInput={(params) => (
-              <TextField
-                {...params}
-                label="AccountCurrencyTypeId"
-                margin="normal"
-              />
+              <TextField {...params} label="CurrencyType" margin="normal" />
             )}
             defaultValue={null}
           />

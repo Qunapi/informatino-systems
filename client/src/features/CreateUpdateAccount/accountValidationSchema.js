@@ -1,21 +1,30 @@
 import * as yup from "yup";
 
 export const ACCOUNT_VALIDATION_SCHEMA = yup.object().shape({
-  AccountTypeId: yup
-    .string()
-    .transform((value) => value?.value)
-    .typeError("AccountTypeId is required")
-    .required("AccountTypeId is required"),
-  AccountNumber: yup
+  // AccountTypeId: yup
+  //   .string()
+  //   .transform((value) => value?.value)
+  //   .typeError("AccountTypeId is required")
+  //   .required("AccountTypeId is required"),
+  // AccountNumber: yup
+  //   .string()
+  //   .trim()
+  //   .matches(/^([0-9])*$/, "AccountNumber is invalid")
+  //   .required("AccountNumber is required"),
+  PassportSerialNumber: yup
     .string()
     .trim()
-    .matches(/^([0-9])*$/, "AccountNumber is invalid")
-    .required("AccountNumber is required"),
-  AccountCurrencyTypeId: yup
+    .required("PassportSerialNumber is required"),
+  PassportNumber: yup
     .string()
-    .transform((value) => value?.value)
-    .typeError("AccountCurrencyTypeId is required")
-    .required("AccountCurrencyTypeId is required"),
+    .trim()
+    .matches(/^[1-9]{1}[0-9]{6}$/, "PassportNumber is invalid")
+    .required("PassportNumber is required"),
+  // AccountCurrencyTypeId: yup
+  //   .string()
+  //   .transform((value) => value?.value)
+  //   .typeError("AccountCurrencyTypeId is required")
+  //   .required("AccountCurrencyTypeId is required"),
   StartDate: yup.date().required("StartDate is required"),
   EndDate: yup.date().required("EndDate is required"),
   ContractTime: yup
