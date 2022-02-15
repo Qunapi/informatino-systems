@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CreateUpdateUser } from "./CreateUpdateUser";
 import CircularProgress from "@mui/material/CircularProgress";
-import { useFormOptions } from "../../hooks/useFormOptions";
+import { useUserFormOptions } from "../../hooks/useUserFormOptions";
 
 export const UpdateUser = () => {
   const { id } = useParams();
@@ -39,7 +39,7 @@ export const UpdateUser = () => {
       });
   };
 
-  const options = useFormOptions();
+  const options = useUserFormOptions();
 
   return user && options.success ? (
     <CreateUpdateUser

@@ -2,7 +2,7 @@ import { CreateUpdateUser } from "./CreateUpdateUser";
 import { userService } from "../../services/userService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useFormOptions } from "../../hooks/useFormOptions";
+import { useUserFormOptions } from "../../hooks/useUserFormOptions";
 
 export const CreateUser = () => {
   let navigate = useNavigate();
@@ -16,7 +16,7 @@ export const CreateUser = () => {
         toast.error(e?.response?.data?.message || "create error");
       });
   };
-  const options = useFormOptions();
+  const options = useUserFormOptions();
 
   return <CreateUpdateUser options={options} onSubmit={onSubmit} />;
 };
