@@ -687,7 +687,8 @@ app.post("/account/close/day", async function (req, res) {
           return;
         } 
       } else {
-        var result = await SecondAccountEndDay(e, date);
+        var isUrgent = e.AccountTypeId == depositTypeUrgent._id ? true : false;
+        var result = await SecondAccountEndDay(e, date, isUrgent);
         if (!result.isSucces){
           res.status(500);
           res.send({ result });
@@ -696,24 +697,6 @@ app.post("/account/close/day", async function (req, res) {
       }
     }
   });
-
-  // var accounts = Account.find();
-  // accounts.forEach((element) => {
-  //   if (!element.IsMain) {
-  //     if (element.accountTypeId == depositTypeUrgent._id) {
-  //       var contractEndDate = new Date(element.EndDate);
-  //       if (contractEndDate <= date) {
-  //         ExecuteTransaction(
-  //           BankDevelopmentAccountId,
-  //           element.Id,
-  //           element.ContractStartDeposit *
-  //             ((100 + element.ContractPercent) / 100),
-  //         );
-  //       }
-  //     } else {
-  //     }
-  //   }
-  // });
 
   res.send();
 });
@@ -740,17 +723,30 @@ async function MainAccountEndDay(account, date) {
   return { isSucces: true, error: "" };
 }
 
-async function SecondAccountEndDay(account, date) {
-  if (new Date(account.EndDate) < date) {
-    account.IsActive = false;
-    await Account.replaceOne({ Id: account.Id }, account);
-  }
-
+async function SecondAccountEndDay(account, date, isUrgent) {
   var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.IncomePerDay);
   if (!result.isSucces){
     return result;
   }
-  if (date.getDate() == 1) {
+
+  if (new Date(account.EndDate) < date) {
+    account.IsActive = false;
+    await Account.replaceOne({ Id: account.Id }, account);
+
+    if (isUrgent) {
+      var cash = account.Saldo;
+      result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
+      if (!result.isSucces){
+        return result;
+      }
+      result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash);
+      if (!result.isSucces){
+        return result;
+      }
+    }
+  }
+
+  if (date.getDate() == 1 && !isUrgent) {
     var cash = account.Saldo;
     result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
     if (!result.isSucces){
