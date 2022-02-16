@@ -859,7 +859,7 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
 
 app.get("/client/:id/accounts", async function (req, res) {
   var accounts = await Account.find({
-    ClientId: id,
+    ClientId: req.params.id,
     IsMain: true
   });
   res.status(200);
@@ -868,7 +868,7 @@ app.get("/client/:id/accounts", async function (req, res) {
 
 app.get("/account/transactions/:ContractNumber", async function (req, res) {
   var transactions = await TransactionLog.find({
-    ContractNumber: ContractNumber
+    ContractNumber: req.params.ContractNumber
   });
   res.status(200);
   res.send({ transactions });
