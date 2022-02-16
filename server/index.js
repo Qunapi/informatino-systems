@@ -110,6 +110,7 @@ const AccountSchema = new mongoose.Schema(
     AccountActiveType: Number,
     AccountTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
     AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    AccountName: String,
     ContractNumber: String,
     ContractTime: Number,
     ContractPercent: Number,
@@ -167,6 +168,22 @@ const TypeSchema = new mongoose.Schema(
 );
 const Type = mongoose.model("Types", TypeSchema);
 
+const TransactionLogSchema = new mongoose.Schema(
+  {
+    ContractNumber: String,
+    Date: Date,
+    FromAccount: String,
+    FromAccountName: String,
+    ToAccount: String,
+    ToAccountName: String,
+    Cash: Number,
+    TypeTo: String,
+    TypeFrom: String 
+  },
+  { timestamps: true },
+);
+const TransactionLog = mongoose.model("TransactionLogs", TransactionLogSchema);
+
 const CityGroupNumber = 1;
 const CitizenshipGroupNumber = 2;
 const DisabilityGroupNumber = 3;
@@ -192,6 +209,12 @@ const AccountActiveTypePassive = 3;
 const CurrencyFromPhisicalMoney = "PhisicalMoney";
 const CashRegisterAccountId = "0ea9555e-9968-460b-8b15-660c62ecb3de";
 const BankDevelopmentAccountId = "61ef1321-a92c-4e6a-b8f4-86c9af319e10";
+
+const MainDepositAccountName = "Main Account";
+const SecondDepositAccountName = "Percent Account";
+
+const TransactionDebitTypeName = "Debit";
+const TransactionCreditTypeName = "Credit";
 
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
@@ -550,6 +573,13 @@ app.post("/account/register/deposit", async function (req, res) {
     return;
   }
 
+  var contractAccount = await Account.findOne({ ContractNumber: requestData.ContractNumber });
+  if (contractAccount) {
+    res.status(500);
+    res.send({ message: "Contract Number already exists" });
+    return;
+  }
+
   var uniqueNumberMain =
     Math.floor(Math.random() * 99999999).toString() + CheckKey;
   var uniqueNumber = Math.floor(Math.random() * 99999999).toString() + CheckKey;
@@ -591,6 +621,7 @@ app.post("/account/register/deposit", async function (req, res) {
     AccountActiveType: AccountActiveTypePassive,
     AccountTypeId: accountType._id,
     AccountCurrencyTypeId: currencyType._id,
+    AccountName: MainDepositAccountName, 
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
@@ -614,6 +645,7 @@ app.post("/account/register/deposit", async function (req, res) {
     AccountActiveType: AccountActiveTypePassive,
     AccountTypeId: accountType._id,
     AccountCurrencyTypeId: currencyType._id,
+    AccountName: SecondDepositAccountName,
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
@@ -629,24 +661,29 @@ app.post("/account/register/deposit", async function (req, res) {
   });
   await newAccountDeposit.save();
 
+  var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
+  date = new Date(date.TypeName);
+
   var cash = requestData.ContractStartDeposit;
   var result = await ExecuteTransactionAsync(
     CurrencyFromPhisicalMoney,
     CashRegisterAccountId,
     cash,
+    date,
+    requestData.ContractNumber
   );
   if (!result.isSucces) {
     res.status(500);
     res.send({ result });
     return;
   }
-  result = await ExecuteTransactionAsync(CashRegisterAccountId, newAccount.Id, cash);
+  result = await ExecuteTransactionAsync(CashRegisterAccountId, newAccount.Id, cash, date, requestData.ContractNumber);
   if (!result.isSucces) {
     res.status(500);
     res.send({ result });
     return;
   }
-  result = await ExecuteTransactionAsync(newAccount.Id, BankDevelopmentAccountId, cash);
+  result = await ExecuteTransactionAsync(newAccount.Id, BankDevelopmentAccountId, cash, date, requestData.ContractNumber);
   if (!result.isSucces) {
     res.status(500);
     res.send({ result });
@@ -680,7 +717,7 @@ app.post("/account/close/day", async function (req, res) {
   accounts.forEach(async (e) => {
     if (e.IsActive && e.Id != BankDevelopmentAccountId && e.Id != CashRegisterAccountId) {
       if (e.IsMain) {
-        var result = await MainAccountEndDay(e, date);
+        var result = await MainAccountEndDay(e, date, e.ContractNumber);
         if (!result.isSucces){
           res.status(500);
           res.send({ result });
@@ -688,7 +725,7 @@ app.post("/account/close/day", async function (req, res) {
         } 
       } else {
         var isUrgent = e.AccountTypeId == depositTypeUrgent._id ? true : false;
-        var result = await SecondAccountEndDay(e, date, isUrgent);
+        var result = await SecondAccountEndDay(e, date, isUrgent, e.ContractNumber);
         if (!result.isSucces){
           res.status(500);
           res.send({ result });
@@ -701,20 +738,20 @@ app.post("/account/close/day", async function (req, res) {
   res.send();
 });
 
-async function MainAccountEndDay(account, date) {
+async function MainAccountEndDay(account, date, contractNumber) {
   if (new Date(account.EndDate) < date) {
     account.IsActive = false;
     await Account.replaceOne({ Id: account.Id }, account);
 
-    var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.ContractStartDeposit);
+    var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.ContractStartDeposit, date, contractNumber);
     if (!result.isSucces){
       return result;
     }
-    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, account.ContractStartDeposit);
+    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, account.ContractStartDeposit, date, contractNumber);
     if (!result.isSucces){
       return result;
     }
-    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, account.ContractStartDeposit);
+    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, account.ContractStartDeposit, date, contractNumber);
     if (!result.isSucces){
       return result;
     }
@@ -723,8 +760,8 @@ async function MainAccountEndDay(account, date) {
   return { isSucces: true, error: "" };
 }
 
-async function SecondAccountEndDay(account, date, isUrgent) {
-  var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.IncomePerDay);
+async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
+  var result = await ExecuteTransactionAsync(BankDevelopmentAccountId, account.Id, account.IncomePerDay, date, contractNumber);
   if (!result.isSucces){
     return result;
   }
@@ -735,11 +772,11 @@ async function SecondAccountEndDay(account, date, isUrgent) {
 
     if (isUrgent) {
       var cash = account.Saldo;
-      result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
+      result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash, date, contractNumber);
       if (!result.isSucces){
         return result;
       }
-      result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash);
+      result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash, date, contractNumber);
       if (!result.isSucces){
         return result;
       }
@@ -748,11 +785,11 @@ async function SecondAccountEndDay(account, date, isUrgent) {
 
   if (date.getDate() == 1 && !isUrgent) {
     var cash = account.Saldo;
-    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash);
+    result = await ExecuteTransactionAsync(account.Id, CashRegisterAccountId, cash, date, contractNumber);
     if (!result.isSucces){
       return result;
     }
-    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash);
+    result = await ExecuteTransactionAsync(CashRegisterAccountId, CurrencyFromPhisicalMoney, cash, date, contractNumber);
     if (!result.isSucces){
       return result;
     }
@@ -761,7 +798,7 @@ async function SecondAccountEndDay(account, date, isUrgent) {
   return { isSucces: true, error: "" };
 }
 
-async function ExecuteTransactionAsync(from, to, value) {
+async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
   if (from != CurrencyFromPhisicalMoney) {
     var source = await Account.findOne({ Id: from });
     if (!source) {
@@ -803,6 +840,19 @@ async function ExecuteTransactionAsync(from, to, value) {
 
     await Account.replaceOne({ Id: destination.Id }, destination);
   }
+
+  var newLog = new TransactionLog({
+    ContractNumber: contractNumber,
+    Date: date,
+    FromAccount: from.Id,
+    FromAccountName: from.AccountName,
+    ToAccount: to.Id,
+    ToAccountName: to.AccountName,
+    Cash: value,
+    TypeFrom: from.AccountActiveType == AccountActiveTypeActive ? TransactionCreditTypeName : TransactionDebitTypeName,
+    TypeTo: to.AccountActiveType == AccountActiveTypeActive ? TransactionDebitTypeName : TransactionCreditTypeName
+  });
+  await newLog.save();
 
   return { isSucces: true, error: "" };
 }
