@@ -1,7 +1,7 @@
 import { NavBar } from "../../common/Common";
 import { useForm } from "react-hook-form";
-import { Button, Paper, TextField } from "@mui/material";
-import React from "react";
+import { Button, Paper, TextField, Typography } from "@mui/material";
+import React, { useState } from "react";
 import { ControlledAutocomplete } from "../../common/AutoComplete";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ACCOUNT_VALIDATION_SCHEMA } from "./accountValidationSchema";
@@ -9,6 +9,7 @@ import { Errors } from "../../common/Errors";
 import { DatePicker } from "../../common/DatePicker";
 import * as dayjs from "dayjs";
 import { useEffect } from "react";
+import { userService } from "../../services/userService";
 
 // PassportSerialNumber
 // PassportNumber
@@ -39,11 +40,31 @@ export const CreateUpdateAccount = ({
     resolver: yupResolver(ACCOUNT_VALIDATION_SCHEMA),
   });
 
+  const [user, setUser] = useState(undefined);
+  console.log(user);
+
+  const [StartDate, EndDate, PassportSerialNumber, PassportNumber] = watch([
+    "StartDate",
+    "EndDate",
+    "PassportSerialNumber",
+    "PassportNumber",
+  ]);
+
+  async function getUser() {
+    const user = await userService.getUserByPassport(
+      PassportSerialNumber,
+      PassportNumber,
+    );
+    setUser(user);
+  }
+
   const onFormSubmit = (data) => {
     onSubmit(data);
   };
 
-  const [StartDate, EndDate] = watch(["StartDate", "EndDate"]);
+  React.useEffect(() => {
+    getUser();
+  }, [PassportSerialNumber, PassportNumber]);
 
   const dateDiff = EndDate?.diff(StartDate, "day");
   useEffect(() => {
@@ -68,6 +89,16 @@ export const CreateUpdateAccount = ({
             alignItems: "center",
           }}
         >
+          <Typography
+            sx={(theme) => ({
+              textDecoration: "none",
+              padding: theme.spacing(2),
+            })}
+            variant="h6"
+            component="div"
+          >
+            {user}
+          </Typography>
           <ControlledAutocomplete
             control={control}
             name="AccountTypeName"
@@ -139,9 +170,6 @@ export const CreateUpdateAccount = ({
             variant="outlined"
             type="number"
           />
-          {/*  */}
-          {/* <CheckboxComponent name="IsRetiree" control={control} /> */}
-
           <Button
             sx={{ m: 2 }}
             variant="contained"

@@ -44,6 +44,15 @@ class UserService {
     return user;
   }
 
+  async getUserByPassport(PassportSerialNumber, PassportNumber) {
+    const {
+      data: { client: user },
+    } = await axios.get(`${this.baseUrl}/find`, {
+      params: { PassportSerialNumber, PassportNumber },
+    });
+    return user;
+  }
+
   updateUser(id, params) {
     const body = createBody(params);
 
