@@ -945,11 +945,11 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
     ToAccountName: destination?.AccountName,
     Cash: value,
     TypeFrom:
-      from.AccountActiveType == AccountActiveTypeActive
+      source?.AccountActiveType == AccountActiveTypeActive
         ? TransactionCreditTypeName
         : TransactionDebitTypeName,
     TypeTo:
-      to.AccountActiveType == AccountActiveTypeActive
+      destination?.AccountActiveType == AccountActiveTypeActive
         ? TransactionDebitTypeName
         : TransactionCreditTypeName,
   });
