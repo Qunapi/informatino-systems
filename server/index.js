@@ -378,6 +378,22 @@ app.get("/clients/:id", async function (req, res) {
   res.send({ client });
 });
 
+app.get("/clients/find", async function (req, res) {
+  var client = await Client.findOne({
+    PassportSerialNumber: req.query.PassportSerialNumber,
+    PassportNumber: req.query.PassportNumber,
+  })
+    .populate("HomeCity")
+    .populate("Citizenship")
+    .populate("Disability");
+  if (client) {
+    res.status(200);
+  } else {
+    res.status(404);
+  }
+  res.send({ client });
+});
+
 app.delete("/clients/:id", async function (req, res) {
   var client = await Client.deleteOne({ Id: req.params.id });
 
