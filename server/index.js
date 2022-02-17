@@ -365,8 +365,11 @@ app.get("/clients", async function (req, res) {
   res.send({ clients });
 });
 
-app.get("/clients/:id", async function (req, res) {
-  var client = await Client.findOne({ Id: req.params.id })
+app.get("/clients/find", async function (req, res) {
+  var client = await Client.findOne({
+    PassportSerialNumber: req.query.PassportSerialNumber,
+    PassportNumber: req.query.PassportNumber,
+  })
     .populate("HomeCity")
     .populate("Citizenship")
     .populate("Disability");
@@ -378,11 +381,8 @@ app.get("/clients/:id", async function (req, res) {
   res.send({ client });
 });
 
-app.get("/clients/find", async function (req, res) {
-  var client = await Client.findOne({
-    PassportSerialNumber: req.query.PassportSerialNumber,
-    PassportNumber: req.query.PassportNumber,
-  })
+app.get("/clients/:id", async function (req, res) {
+  var client = await Client.findOne({ Id: req.params.id })
     .populate("HomeCity")
     .populate("Citizenship")
     .populate("Disability");
