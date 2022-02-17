@@ -839,28 +839,27 @@ async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
     account.IsActive = false;
     await Account.replaceOne({ Id: account.Id }, account);
 
-    if (isUrgent) {
-      var cash = account.Saldo;
-      result = await ExecuteTransactionAsync(
-        account.Id,
-        CashRegisterAccountId,
-        cash,
-        date,
-        contractNumber,
-      );
-      if (!result.isSucces) {
-        return result;
-      }
-      result = await ExecuteTransactionAsync(
-        CashRegisterAccountId,
-        CurrencyFromPhisicalMoney,
-        cash,
-        date,
-        contractNumber,
-      );
-      if (!result.isSucces) {
-        return result;
-      }
+    result = await ExecuteTransactionAsync(
+      CashRegisterAccountId,
+      CurrencyFromPhisicalMoney,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+
+    var cash = account.Saldo;
+    result = await ExecuteTransactionAsync(
+      account.Id,
+      CashRegisterAccountId,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
     }
   }
 
