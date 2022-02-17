@@ -16,7 +16,19 @@ class AccountService {
   createAccount(params) {
     const body = createBody(params);
 
-    return axios.post(this.baseUrl, body);
+    return axios.post(`${this.baseUrl}/account/register/deposit`, body);
+  }
+
+  getUserAccounts(id) {
+    return axios.get(`${this.baseUrl}/client/${id}/accounts`);
+  }
+
+  getAccount(id) {
+    return axios.get(`${this.baseUrl}/accounts/${id}`);
+  }
+
+  getTransactions(ContractNumber) {
+    return axios.get(`${this.baseUrl}/account/transactions/${ContractNumber}`);
   }
 
   // async getAccounts() {
@@ -53,7 +65,7 @@ class AccountService {
 }
 
 export const accountService = new AccountService({
-  baseUrl: "http://localhost:80/account/register/deposit",
+  baseUrl: "http://localhost:80",
 });
 
 // function normalizeUser(user) {

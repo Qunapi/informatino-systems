@@ -13,6 +13,7 @@ export const CreateUpdateUser = ({
   defaultValues,
   onSubmit,
   options: { citiesOptions, disabilitiesOptions, citizenshipsOptions },
+  children,
 }) => {
   const {
     register,
@@ -31,6 +32,7 @@ export const CreateUpdateUser = ({
   return (
     <>
       <NavBar />
+      {children}
       <Errors errors={errors} />
       <Paper
         sx={(theme) => ({

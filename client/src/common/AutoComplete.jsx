@@ -22,7 +22,6 @@ export const ControlledAutocomplete = ({
       }) => {
         const realValue =
           options.find((e) => e?.value === value?.value) || null;
-        console.log(realValue);
         return (
           <Autocomplete
             options={options}

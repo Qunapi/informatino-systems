@@ -5,12 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CreateUpdateUser } from "./CreateUpdateUser";
 import CircularProgress from "@mui/material/CircularProgress";
+import Button from "@mui/material/Button";
 import { useUserFormOptions } from "../../hooks/useUserFormOptions";
+import { accountService } from "../../services/accountService";
 
 export const UpdateUser = () => {
   const { id } = useParams();
 
   const [user, setUser] = useState();
+  const [accounts, setAccounts] = useState([]);
   let navigate = useNavigate();
 
   const getUser = useCallback(async () => {
@@ -25,9 +28,20 @@ export const UpdateUser = () => {
     setUser(client);
   }, [id]);
 
+  const getUserAccounts = async (id) => {
+    const result = await accountService.getUserAccounts(id);
+    setAccounts(result.data.accounts);
+  };
+  console.log(accounts);
   useEffect(() => {
     getUser();
   }, [getUser]);
+
+  useEffect(() => {
+    if (user) {
+      getUserAccounts(user._id);
+    }
+  }, [user]);
 
   const onSubmit = (data) => {
     userService
@@ -46,7 +60,22 @@ export const UpdateUser = () => {
       options={options}
       defaultValues={user}
       onSubmit={onSubmit}
-    />
+    >
+      {accounts.map((account) => {
+        return (
+          <Button
+            onClick={() => {
+              navigate(`/accounts/${account.ContractNumber}`);
+            }}
+            key={account._id}
+            sx={{ m: 2 }}
+            variant="contained"
+          >
+            {account.AccountName}
+          </Button>
+        );
+      })}
+    </CreateUpdateUser>
   ) : (
     <CircularProgress />
   );

@@ -40,7 +40,6 @@ export const CreateUpdateAccount = ({
   });
 
   const onFormSubmit = (data) => {
-    console.log(data);
     onSubmit(data);
   };
 
