@@ -89,16 +89,20 @@ export const CreateUpdateAccount = ({
             alignItems: "center",
           }}
         >
-          <Typography
-            sx={(theme) => ({
-              textDecoration: "none",
-              padding: theme.spacing(2),
-            })}
-            variant="h6"
-            component="div"
-          >
-            {user}
-          </Typography>
+          {
+            <Typography
+              sx={(theme) => ({
+                textDecoration: "none",
+                padding: theme.spacing(2),
+              })}
+              variant="h6"
+              component="div"
+            >
+              {user
+                ? `${user?.MiddleName} ${user?.Name} ${user?.Surname}`
+                : "User not Found"}
+            </Typography>
+          }
           <ControlledAutocomplete
             control={control}
             name="AccountTypeName"

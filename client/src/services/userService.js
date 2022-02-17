@@ -45,12 +45,16 @@ class UserService {
   }
 
   async getUserByPassport(PassportSerialNumber, PassportNumber) {
-    const {
-      data: { client: user },
-    } = await axios.get(`${this.baseUrl}/find`, {
-      params: { PassportSerialNumber, PassportNumber },
-    });
-    return user;
+    try {
+      const {
+        data: { client: user },
+      } = await axios.get(`${this.baseUrl}/find`, {
+        params: { PassportSerialNumber, PassportNumber },
+      });
+      return user;
+    } catch (e) {
+      return undefined;
+    }
   }
 
   updateUser(id, params) {
