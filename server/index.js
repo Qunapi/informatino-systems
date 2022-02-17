@@ -876,15 +876,17 @@ async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
 }
 
 async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
+  var source;
+  var destination;
   if (from != CurrencyFromPhisicalMoney) {
-    var source = await Account.findOne({ Id: from });
+    source = await Account.findOne({ Id: from });
     if (!source) {
       return { isSucces: false, error: "Error while executing transaction" };
     }
   }
 
   if (to != CurrencyFromPhisicalMoney) {
-    var destination = await Account.findOne({ Id: to });
+    destination = await Account.findOne({ Id: to });
     if (!destination) {
       return { isSucces: false, error: "Error while executing transaction" };
     }
@@ -921,10 +923,10 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
   var newLog = new TransactionLog({
     ContractNumber: contractNumber,
     Date: date,
-    FromAccount: from.Id,
-    FromAccountName: from.AccountName,
-    ToAccount: to.Id,
-    ToAccountName: to.AccountName,
+    FromAccount: source?.Id,
+    FromAccountName: source?.AccountName,
+    ToAccount: destination?.Id,
+    ToAccountName: destination?.AccountName,
     Cash: value,
     TypeFrom:
       from.AccountActiveType == AccountActiveTypeActive
