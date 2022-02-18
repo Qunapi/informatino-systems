@@ -216,6 +216,8 @@ const SecondDepositAccountName = "Percent Account";
 const TransactionDebitTypeName = "Debit";
 const TransactionCreditTypeName = "Credit";
 
+const CashAccuracy = 100000;
+
 app.post("/clients", async function (req, res) {
   let clientData = req.body;
 
@@ -646,8 +648,12 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
-    ContractStartDeposit: requestData.ContractStartDeposit,
-    IncomePerDay: requestData.ContractStartDeposit / dateDifference,
+    ContractStartDeposit: Math.trunc(
+      requestData.ContractStartDeposit * CashAccuracy,
+    ),
+    IncomePerDay: Math.trunc(
+      (requestData.ContractStartDeposit / dateDifference) * CashAccuracy,
+    ),
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -670,8 +676,12 @@ app.post("/account/register/deposit", async function (req, res) {
     ContractNumber: requestData.ContractNumber,
     ContractTime: requestData.ContractTime,
     ContractPercent: requestData.ContractPercent,
-    ContractStartDeposit: requestData.ContractStartDeposit,
-    IncomePerDay: requestData.ContractStartDeposit / dateDifference,
+    ContractStartDeposit: Math.trunc(
+      requestData.ContractStartDeposit * CashAccuracy,
+    ),
+    IncomePerDay: Math.trunc(
+      (requestData.ContractStartDeposit / dateDifference) * CashAccuracy,
+    ),
     Credit: 0,
     Debit: 0,
     Saldo: 0,
@@ -685,7 +695,7 @@ app.post("/account/register/deposit", async function (req, res) {
   var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
   date = new Date(date.TypeName);
 
-  var cash = requestData.ContractStartDeposit;
+  var cash = Math.trunc(requestData.ContractStartDeposit * CashAccuracy);
   var result = await ExecuteTransactionAsync(
     CurrencyFromPhisicalMoney,
     CashRegisterAccountId,
@@ -921,10 +931,6 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
       source.Saldo = source.Credit - source.Debit;
     }
 
-    source.Credit = Number(source.Credit.toFixed(10));
-    source.Debit = Number(source.Debit.toFixed(10));
-    source.Saldo = Number(source.Saldo.toFixed(10));
-
     await Account.replaceOne({ Id: source.Id }, source);
   }
 
@@ -937,10 +943,6 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
       destination.Saldo = destination.Credit - destination.Debit;
     }
 
-    destination.Credit = Number(destination.Credit.toFixed(10));
-    destination.Debit = Number(destination.Debit.toFixed(10));
-    destination.Saldo = Number(destination.Saldo.toFixed(10));
-
     await Account.replaceOne({ Id: destination.Id }, destination);
   }
 
@@ -951,7 +953,7 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
     FromAccountName: source?.AccountName,
     ToAccount: destination?.Id,
     ToAccountName: destination?.AccountName,
-    Cash: value,
+    Cash: value / CashAccuracy,
     TypeFrom:
       source?.AccountActiveType == AccountActiveTypeActive
         ? TransactionCreditTypeName

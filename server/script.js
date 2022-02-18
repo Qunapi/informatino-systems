@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const { Schema } = mongoose;
 
+const CashAccuracy = 100000;
+
 mongoose.Promise = global.Promise;
 mongoose.connect(
   "mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/BankDB?retryWrites=true&w=majority",
@@ -12,7 +14,7 @@ db.on("error", console.error.bind(console, "DB connection error"));
 db.once("open", async function () {
   console.log("-Connected-");
 
-  var uniqueNumber = Math.floor(Math.random() * 99999999).toString();  
+  var uniqueNumber = Math.floor(Math.random() * 99999999).toString();
   uniqueNumber = "7327" + uniqueNumber + "9";
 
   let newBankDevelopmentAccount = new Account({
@@ -29,9 +31,9 @@ db.once("open", async function () {
     ContractPercent: 0,
     ContractStartDeposit: 0,
     IncomePerDay: 0,
-    Credit: 100000000000,
+    Credit: 100000000000 * CashAccuracy,
     Debit: 0,
-    Saldo: 100000000000,
+    Saldo: 100000000000 * CashAccuracy,
     IsActive: true,
     StartDate: 0,
     EndDate: 0,
@@ -39,7 +41,7 @@ db.once("open", async function () {
   });
   await newBankDevelopmentAccount.save();
 
-  uniqueNumber = Math.floor(Math.random() * 99999999).toString();  
+  uniqueNumber = Math.floor(Math.random() * 99999999).toString();
   uniqueNumber = "1010" + uniqueNumber + "9";
 
   let newBankCashRegisterAccount = new Account({
@@ -67,45 +69,45 @@ db.once("open", async function () {
   await newBankCashRegisterAccount.save();
 
   let newType = new Type({
-      TypeGroup: 5,
-      TypeName: "BYN"
+    TypeGroup: 5,
+    TypeName: "BYN",
   });
   await newType.save();
 
   newType = new Type({
     TypeGroup: 4,
-    TypeName: "Urgent"
+    TypeName: "Urgent",
   });
   await newType.save();
 
   newType = new Type({
     TypeGroup: 4,
-    TypeName: "Revocate"
+    TypeName: "Revocate",
   });
   await newType.save();
 
   var date = new Date();
   newType = new Type({
-      TypeGroup: 6,
-      TypeName: date.toUTCString()
+    TypeGroup: 6,
+    TypeName: date.toUTCString(),
   });
   await newType.save();
 
   var newCity = new Type({
     TypeGroup: 1,
-    TypeName: "Minsk"
+    TypeName: "Minsk",
   });
   await newCity.save();
 
   var newCitizenship = new Type({
     TypeGroup: 2,
-    TypeName: "Belarus"
+    TypeName: "Belarus",
   });
   await newCitizenship.save();
 
   var newDisability = new Type({
     TypeGroup: 3,
-    TypeName: "None"
+    TypeName: "None",
   });
   await newDisability.save();
 
@@ -164,45 +166,45 @@ const AccountSchema = new mongoose.Schema(
     IsMain: Boolean,
   },
   { timestamps: true },
-  );
-  const Account = mongoose.model("Accounts", AccountSchema);
+);
+const Account = mongoose.model("Accounts", AccountSchema);
 
-  const TypeSchema = new mongoose.Schema(
-    {
-      TypeGroup: Number,
-      TypeName: String,
-    },
-    { timestamps: true },
-  );
-  const Type = mongoose.model("Types", TypeSchema);
+const TypeSchema = new mongoose.Schema(
+  {
+    TypeGroup: Number,
+    TypeName: String,
+  },
+  { timestamps: true },
+);
+const Type = mongoose.model("Types", TypeSchema);
 
-  const ClientSchema = new mongoose.Schema(
-    {
-      Id: String,
-      Surname: String,
-      Name: String,
-      MiddleName: String,
-      DateOfBirth: Date,
-      PassportSerialNumber: String,
-      PassportNumber: String,
-      PlaceOfIssue: String,
-      DateOfIssue: Date,
-      IdentificationalNumber: String,
-      PlaceOfBirth: String,
-      HomeCity: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-      HomeAddress: String,
-      HomeTelephone: String,
-      MobileTelephone: String,
-      EMail: String,
-      PlaceOfWork: String,
-      Position: String,
-      FamilyStatus: String,
-      Citizenship: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-      Disability: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-      IsRetiree: Boolean,
-      Sallary: Number,
-      IsConscript: Boolean,
-    },
-    { timestamps: true },
-  );
-  const Client = mongoose.model("Clients", ClientSchema);
+const ClientSchema = new mongoose.Schema(
+  {
+    Id: String,
+    Surname: String,
+    Name: String,
+    MiddleName: String,
+    DateOfBirth: Date,
+    PassportSerialNumber: String,
+    PassportNumber: String,
+    PlaceOfIssue: String,
+    DateOfIssue: Date,
+    IdentificationalNumber: String,
+    PlaceOfBirth: String,
+    HomeCity: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    HomeAddress: String,
+    HomeTelephone: String,
+    MobileTelephone: String,
+    EMail: String,
+    PlaceOfWork: String,
+    Position: String,
+    FamilyStatus: String,
+    Citizenship: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    Disability: [{ type: Schema.Types.ObjectId, ref: "Types" }],
+    IsRetiree: Boolean,
+    Sallary: Number,
+    IsConscript: Boolean,
+  },
+  { timestamps: true },
+);
+const Client = mongoose.model("Clients", ClientSchema);
