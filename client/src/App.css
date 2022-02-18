@@ -40,3 +40,7 @@
 .MuiAutocomplete-root {
   width: 200px;
 }
+
+.MuiTableCell-root {
+  border: 1px solid black !important;
+}

@@ -52,47 +52,53 @@ export const AccountPage = () => {
       <Button onClick={finishDay} sx={{ m: 2 }} variant="contained">
         Finish Day
       </Button>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Money</TableCell>
-              {Array.from(accounts.keys()).map((e) => {
+      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+        <TableContainer sx={{ maxHeight: "80vh" }}>
+          <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Money</TableCell>
+                {Array.from(accounts.keys()).map((e) => {
+                  return (
+                    <React.Fragment key={e}>
+                      <TableCell>{e} debit</TableCell>
+                      <TableCell>{e} credit</TableCell>
+                    </React.Fragment>
+                  );
+                })}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => {
                 return (
-                  <React.Fragment key={e}>
-                    <TableCell>{e} debit</TableCell>
-                    <TableCell>{e} credit</TableCell>
-                  </React.Fragment>
+                  <TableRow
+                    key={row._id}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {row.date}
+                    </TableCell>
+                    <TableCell>{row.money}</TableCell>
+                    {Array.from(accounts.keys()).map((e) => {
+                      return (
+                        <React.Fragment key={e}>
+                          <TableCell>
+                            {row[getColumnName(e, "Debit")]}
+                          </TableCell>
+                          <TableCell>
+                            {row[getColumnName(e, "Credit")]}
+                          </TableCell>
+                        </React.Fragment>
+                      );
+                    })}
+                  </TableRow>
                 );
               })}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => {
-              return (
-                <TableRow
-                  key={row._id}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {row.date}
-                  </TableCell>
-                  <TableCell>{row.money}</TableCell>
-                  {Array.from(accounts.keys()).map((e) => {
-                    return (
-                      <React.Fragment key={e}>
-                        <TableCell>{row[getColumnName(e, "Debit")]}</TableCell>
-                        <TableCell>{row[getColumnName(e, "Credit")]}</TableCell>
-                      </React.Fragment>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 };
