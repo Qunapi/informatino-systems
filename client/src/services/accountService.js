@@ -34,6 +34,10 @@ class AccountService {
   finishDay() {
     return axios.post(`${this.baseUrl}/account/close/day`);
   }
+
+  closeAccount(contractNumber) {
+    return axios.post(`${this.baseUrl}/account/close/day`);
+  }
 }
 
 export const accountService = new AccountService({

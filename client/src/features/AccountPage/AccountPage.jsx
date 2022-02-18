@@ -64,6 +64,17 @@ export const AccountPage = () => {
     });
   };
 
+  function closeDeposit(contractNumber) {
+    accountService
+      .closeAccount(contractNumber)
+      .then(() => {
+        accountService.getTransactions(contractNumber).then((e) => {
+          setTransactions(e.data.transactions);
+        });
+      })
+      .then(() => toast.success("Account closed"));
+  }
+
   return (
     <div>
       <NavBar />
@@ -72,6 +83,9 @@ export const AccountPage = () => {
       </Button>
       <Button onClick={finishMonth} sx={{ m: 2 }} variant="contained">
         Finish Month
+      </Button>
+      <Button onClick={closeDeposit} sx={{ m: 2 }} variant="contained">
+        Close deposit
       </Button>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: "80vh" }}>
