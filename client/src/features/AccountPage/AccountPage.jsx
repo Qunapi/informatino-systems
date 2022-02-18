@@ -60,6 +60,7 @@ export const AccountPage = () => {
       render: "Calculation finished",
       type: "success",
       isLoading: false,
+      autoClose: true,
     });
   };
 
@@ -99,9 +100,7 @@ export const AccountPage = () => {
                     <TableCell component="th" scope="row">
                       {dayjs(row.date).format("DD.MM.YYYY")}
                     </TableCell>
-                    <TableCell>
-                      {(Number(row.money || 0) / 100).toFixed(2)}
-                    </TableCell>
+                    <TableCell>{Number(row.money || 0).toFixed(2)}</TableCell>
                     {Array.from(accounts.keys()).map((e) => {
                       return (
                         <React.Fragment key={e}>
