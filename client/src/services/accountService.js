@@ -36,10 +36,10 @@ class AccountService {
   }
 
   closeAccount(contractNumber) {
-    return axios.post(`${this.baseUrl}/account/close/day`);
+    return axios.post(`${this.baseUrl}/account/revoke/${contractNumber}`);
   }
 }
 
 export const accountService = new AccountService({
-  baseUrl: "http://localhost:80",
+  baseUrl: "http://localhost:8000",
 });

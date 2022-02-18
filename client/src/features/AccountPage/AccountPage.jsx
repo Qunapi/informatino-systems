@@ -64,7 +64,7 @@ export const AccountPage = () => {
     });
   };
 
-  function closeDeposit(contractNumber) {
+  function closeDeposit() {
     accountService
       .closeAccount(contractNumber)
       .then(() => {

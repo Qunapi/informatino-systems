@@ -27,5 +27,5 @@ class MetaInfoService {
 }
 
 export const metaInfoService = new MetaInfoService({
-  baseUrl: "http://localhost:80",
+  baseUrl: "http://localhost:8000",
 });

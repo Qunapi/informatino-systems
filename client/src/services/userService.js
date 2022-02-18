@@ -69,7 +69,7 @@ class UserService {
 }
 
 export const userService = new UserService({
-  baseUrl: "http://localhost:80/clients",
+  baseUrl: "http://localhost:8000/clients",
 });
 
 function normalizeUser(user) {

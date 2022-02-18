@@ -86,13 +86,13 @@ const app = express();
 app.use(cors());
 const httpServer = http.Server(app);
 
-httpServer.listen(80);
+httpServer.listen(8000);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
-  "mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/BankDB?retryWrites=true&w=majority",
+  "mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false",
   { useNewUrlParser: true, useUnifiedTopology: true },
 );
 const db = mongoose.connection;
@@ -801,6 +801,102 @@ app.post("/account/close/day", async function (req, res) {
   res.send({ result });
 });
 
+async function RevokeDeposit(contractNumber) {
+  var accounts = await Account.find({
+    ContractNumber: contractNumber,
+    IsActive : true
+  });
+  if (accounts?.length == 0) {
+    return ({ message: "Account does not exists" });
+  }
+
+  var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
+  date = new Date(date.TypeName);
+
+  var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
+  var depositTypeRevocate;
+  var depositTypeUrgent;
+  depositTypes.forEach((e) => {
+    if (e.TypeName == "Urgent") {
+      depositTypeUrgent = e;
+    }
+    if (e.TypeName == "Revocate") {
+      depositTypeRevocate = e;
+    }
+  });
+
+ if (accounts[0].AccountTypeId[0].equals(depositTypeUrgent._id)) {
+  return ({ message: "Cannot revocate urgent account" }); 
+ }
+
+  for (var i = 0; i < accounts.length; i++) {
+    var acc = accounts[i];
+
+    if (acc.IsMain) {
+      acc.IsActive = false;
+      await Account.replaceOne({ Id: acc.Id }, acc);
+  
+      var result = await ExecuteTransactionAsync(
+        BankDevelopmentAccountId,
+        acc.Id,
+        acc.ContractStartDeposit,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+      result = await ExecuteTransactionAsync(
+        acc.Id,
+        CashRegisterAccountId,
+        acc.ContractStartDeposit,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+      result = await ExecuteTransactionAsync(
+        CashRegisterAccountId,
+        CurrencyFromPhisicalMoney,
+        acc.ContractStartDeposit,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+    } else {
+      acc.IsActive = false;
+      await Account.replaceOne({ Id: acc.Id }, acc);
+  
+      var cash = acc.Saldo;
+      result = await ExecuteTransactionAsync(
+        acc.Id,
+        CashRegisterAccountId,
+        cash,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+  
+      result = await ExecuteTransactionAsync(
+        CashRegisterAccountId,
+        CurrencyFromPhisicalMoney,
+        cash,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+    }
+
+  }
+}
+
 async function MainAccountEndDay(account, date, contractNumber) {
   if (new Date(account.EndDate) < date) {
     account.IsActive = false;
@@ -999,4 +1095,10 @@ app.get("/account/transactions/:ContractNumber", async function (req, res) {
   });
   res.status(200);
   res.send({ transactions });
+});
+
+app.post("/account/revoke/:id", async function (req,res) {
+  var resault = await RevokeDeposit(req.params.id);
+  res.status(200);
+  res.send({resault});
 });
