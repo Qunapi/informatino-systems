@@ -136,12 +136,7 @@ export const CreateUpdateAccount = ({
             label="ClientState"
             variant="outlined"
           />
-          <TextField
-            sx={{ m: 2 }}
-            {...register("ContractNumber")}
-            label="ContractNumber"
-            variant="outlined"
-          />
+
           <ControlledAutocomplete
             control={control}
             name="CurrencyType"
