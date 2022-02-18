@@ -749,6 +749,7 @@ app.post("/account/close/day", async function (req, res) {
     }
   });
 
+  var result;
   var accounts = await Account.find();
   accounts.forEach(async (e) => {
     if (
@@ -757,10 +758,9 @@ app.post("/account/close/day", async function (req, res) {
       e.Id != CashRegisterAccountId
     ) {
       if (e.IsMain) {
-        var result = await MainAccountEndDay(e, date, e.ContractNumber);
+        result = await MainAccountEndDay(e, date, e.ContractNumber);
         if (!result.isSucces) {
           res.status(500);
-          res.send({ result });
           return;
         }
       } else {
@@ -775,14 +775,13 @@ app.post("/account/close/day", async function (req, res) {
         );
         if (!result.isSucces) {
           res.status(500);
-          res.send({ result });
           return;
         }
       }
     }
   });
 
-  res.send();
+  res.send({ result });
 });
 
 async function MainAccountEndDay(account, date, contractNumber) {
@@ -841,9 +840,10 @@ async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
     account.IsActive = false;
     await Account.replaceOne({ Id: account.Id }, account);
 
+    var cash = account.Saldo;
     result = await ExecuteTransactionAsync(
+      account.Id,
       CashRegisterAccountId,
-      CurrencyFromPhisicalMoney,
       cash,
       date,
       contractNumber,
@@ -852,10 +852,9 @@ async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
       return result;
     }
 
-    var cash = account.Saldo;
     result = await ExecuteTransactionAsync(
-      account.Id,
       CashRegisterAccountId,
+      CurrencyFromPhisicalMoney,
       cash,
       date,
       contractNumber,
@@ -922,6 +921,10 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
       source.Saldo = source.Credit - source.Debit;
     }
 
+    source.Credit = Number(source.Credit.toFixed(10));
+    source.Debit = Number(source.Debit.toFixed(10));
+    source.Saldo = Number(source.Saldo.toFixed(10));
+
     await Account.replaceOne({ Id: source.Id }, source);
   }
 
@@ -933,6 +936,10 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
       destination.Credit = destination.Credit + value;
       destination.Saldo = destination.Credit - destination.Debit;
     }
+
+    destination.Credit = Number(destination.Credit.toFixed(10));
+    destination.Debit = Number(destination.Debit.toFixed(10));
+    destination.Saldo = Number(destination.Saldo.toFixed(10));
 
     await Account.replaceOne({ Id: destination.Id }, destination);
   }
