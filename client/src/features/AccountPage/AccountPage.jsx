@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import * as dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 export const AccountPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -47,11 +48,29 @@ export const AccountPage = () => {
     });
   };
 
+  const finishMonth = async () => {
+    const id = toast.loading("Calculation started");
+    for (let i = 0; i < 31; i++) {
+      await accountService.finishDay();
+    }
+    accountService.getTransactions(contractNumber).then((e) => {
+      setTransactions(e.data.transactions);
+    });
+    toast.update(id, {
+      render: "Calculation finished",
+      type: "success",
+      isLoading: false,
+    });
+  };
+
   return (
     <div>
       <NavBar />
       <Button onClick={finishDay} sx={{ m: 2 }} variant="contained">
         Finish Day
+      </Button>
+      <Button onClick={finishMonth} sx={{ m: 2 }} variant="contained">
+        Finish Month
       </Button>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: "80vh" }}>
@@ -80,7 +99,9 @@ export const AccountPage = () => {
                     <TableCell component="th" scope="row">
                       {dayjs(row.date).format("DD.MM.YYYY")}
                     </TableCell>
-                    <TableCell>{Number(row.money || 0).toFixed(2)}</TableCell>
+                    <TableCell>
+                      {(Number(row.money || 0) / 100).toFixed(2)}
+                    </TableCell>
                     {Array.from(accounts.keys()).map((e) => {
                       return (
                         <React.Fragment key={e}>
