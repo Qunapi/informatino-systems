@@ -10,6 +10,7 @@ import TableHead from "@mui/material/TableHead";
 import Button from "@mui/material/Button";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import * as dayjs from "dayjs";
 
 export const AccountPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -77,9 +78,9 @@ export const AccountPage = () => {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell component="th" scope="row">
-                      {row.date}
+                      {dayjs(row.date).format("DD.MM.YYYY")}
                     </TableCell>
-                    <TableCell>{row.money}</TableCell>
+                    <TableCell>{Number(row.money || 0).toFixed(2)}</TableCell>
                     {Array.from(accounts.keys()).map((e) => {
                       return (
                         <React.Fragment key={e}>
