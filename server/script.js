@@ -14,6 +14,8 @@ db.on("error", console.error.bind(console, "DB connection error"));
 db.once("open", async function () {
   console.log("-Connected-");
 
+  await db.dropDatabase();
+
   var uniqueNumber = Math.floor(Math.random() * 99999999).toString();
   uniqueNumber = "7327" + uniqueNumber + "9";
 

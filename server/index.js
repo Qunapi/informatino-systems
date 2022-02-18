@@ -652,10 +652,10 @@ app.post("/account/register/deposit", async function (req, res) {
       requestData.ContractStartDeposit * CashAccuracy,
     ),
     IncomePerDay: Math.trunc(
-      (((requestData.ContractStartDeposit / dateDifference) *
-        requestData.ContractPercent) /
-        365) *
-        CashAccuracy,
+      requestData.ContractStartDeposit *
+        ((dateDifference * requestData.ContractPercent) / 365 / 100 + 1) *
+        CashAccuracy -
+        requestData.ContractStartDeposit * CashAccuracy,
     ),
     Credit: 0,
     Debit: 0,
@@ -683,10 +683,10 @@ app.post("/account/register/deposit", async function (req, res) {
       requestData.ContractStartDeposit * CashAccuracy,
     ),
     IncomePerDay: Math.trunc(
-      (((requestData.ContractStartDeposit / dateDifference) *
-        requestData.ContractPercent) /
-        365) *
-        CashAccuracy,
+      requestData.ContractStartDeposit *
+        ((dateDifference * requestData.ContractPercent) / 365 / 100 + 1) *
+        CashAccuracy -
+        requestData.ContractStartDeposit * CashAccuracy,
     ),
     Credit: 0,
     Debit: 0,
