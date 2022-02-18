@@ -767,7 +767,8 @@ app.post("/account/close/day", async function (req, res) {
 
   var result;
   var accounts = await Account.find();
-  const promises = accounts.map(async (e) => {
+  for (var i = 0; i < accounts.length; i++) {
+    var e = accounts[i];
     if (
       e.IsActive &&
       e.Id != BankDevelopmentAccountId &&
@@ -795,9 +796,7 @@ app.post("/account/close/day", async function (req, res) {
         }
       }
     }
-  });
-
-  await Promise.all(promises);
+  }
 
   res.send({ result });
 });
