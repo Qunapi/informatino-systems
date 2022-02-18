@@ -774,7 +774,7 @@ app.post("/account/close/day", async function (req, res) {
           return;
         }
       } else {
-        var isUrgent = compareKeys(e.AccountTypeId[0], depositTypeUrgent._id)
+        var isUrgent = e.AccountTypeId[0].equals(depositTypeUrgent._id)
           ? true
           : false;
         var result = await SecondAccountEndDay(
@@ -993,22 +993,3 @@ app.get("/account/transactions/:ContractNumber", async function (req, res) {
   res.status(200);
   res.send({ transactions });
 });
-
-function compareKeys(a, b) {
-  var aKeys = Object.keys(a).sort();
-  var bKeys = Object.keys(b).sort();
-
-  // Check that the objects contain the same keys.
-  if (JSON.stringify(aKeys) !== JSON.stringify(bKeys)) {
-    return false;
-  }
-
-  // Check that the keys in each object contain the same values.
-  for (const key in aKeys) {
-    if (a[key] !== b[key]) {
-      return false;
-    }
-  }
-
-  return true;
-}
