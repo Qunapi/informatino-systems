@@ -635,7 +635,6 @@ app.post("/account/register/deposit", async function (req, res) {
     requestData.StartDate,
     "day",
   );
-  dateDifference--;
 
   let newAccount = new Account({
     Id: uuidv4(),
