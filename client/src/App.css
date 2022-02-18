@@ -44,3 +44,7 @@
 .MuiTableCell-root {
   border: 1px solid black !important;
 }
+
+.MuiTableCell-root {
+  text-align: center;
+}
