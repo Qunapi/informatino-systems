@@ -73,8 +73,10 @@ export const AccountPage = () => {
         });
       })
       .then(() => toast.success("Account closed"))
-      .catch(() => {
-        toast.error("Cannot close account");
+      .catch((e) => {
+        toast.error(
+          e?.response?.data?.resault?.message || "Cannot close account",
+        );
       });
   }
 
