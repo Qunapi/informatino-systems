@@ -5,6 +5,7 @@ const createBody = (params) => {
     ...params,
     AccountTypeName: params.AccountTypeName.value,
     CurrencyType: params.CurrencyType.value,
+    ClientState: params.ClientState.value,
   };
 };
 
@@ -13,10 +14,16 @@ class AccountService {
     this.baseUrl = baseUrl;
   }
 
-  createAccount(params) {
+  createDeposit(params) {
     const body = createBody(params);
 
     return axios.post(`${this.baseUrl}/account/register/deposit`, body);
+  }
+
+  createCredit(params) {
+    const body = createBody(params);
+
+    return axios.post(`${this.baseUrl}/account/register/credit`, body);
   }
 
   getUserAccounts(id) {

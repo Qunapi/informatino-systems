@@ -23,6 +23,21 @@ import { userService } from "../../services/userService";
 // StartDate
 // EndDate
 
+const clientStateOptions = [
+  {
+    label: "Физический",
+    value: 1,
+  },
+  {
+    label: "Юридический",
+    value: 2,
+  },
+  {
+    label: "ИП",
+    value: 3,
+  },
+];
+
 export const CreateUpdateAccount = ({
   defaultValues,
   onSubmit,
@@ -112,6 +127,7 @@ export const CreateUpdateAccount = ({
             )}
             defaultValue={null}
           />
+
           <TextField
             sx={{ m: 2 }}
             {...register("ContractNumber")}
@@ -130,13 +146,16 @@ export const CreateUpdateAccount = ({
             label="PassportNumber"
             variant="outlined"
           />
-          <TextField
-            sx={{ m: 2 }}
-            {...register("ClientState")}
-            label="ClientState"
-            variant="outlined"
-          />
 
+          <ControlledAutocomplete
+            control={control}
+            name="ClientState"
+            options={clientStateOptions}
+            renderInput={(params) => (
+              <TextField {...params} label="ClientState" margin="normal" />
+            )}
+            defaultValue={null}
+          />
           <ControlledAutocomplete
             control={control}
             name="CurrencyType"
@@ -160,7 +179,7 @@ export const CreateUpdateAccount = ({
             {...register("ContractStartDeposit")}
             label="ContractStartDeposit"
             variant="outlined"
-            type="text"
+            type="number"
           />
           <TextField
             sx={{ m: 2 }}
