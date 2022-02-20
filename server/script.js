@@ -78,13 +78,13 @@ db.once("open", async function () {
 
   newType = new Type({
     TypeGroup: 4,
-    TypeName: "Urgent",
+    TypeName: "Urgent Deposit",
   });
   await newType.save();
 
   newType = new Type({
     TypeGroup: 4,
-    TypeName: "Revocate",
+    TypeName: "Revocate Deposit",
   });
   await newType.save();
 
