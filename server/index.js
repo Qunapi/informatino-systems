@@ -1096,6 +1096,7 @@ async function RevokeDeposit(contractNumber, res) {
       }
     }
   }
+  res.status(200);
 }
 
 async function MainAccountEndDay(account, date, contractNumber) {
@@ -1309,7 +1310,6 @@ app.get("/account/transactions/:ContractNumber", async function (req, res) {
 
 app.post("/account/revoke/:id", async function (req, res) {
   var resault = await RevokeDeposit(req.params.id, res);
-  res.status(200);
   res.send({ resault });
 });
 
