@@ -576,6 +576,15 @@ app.post("/account/register/deposit", async function (req, res) {
     return;
   }
 
+  if (
+    requestData.AccountTypeName != UrgentDepositName &&
+    requestData.AccountTypeName != RevocateDepositName
+  ) {
+    res.status(422);
+    res.send({ message: "Wrong deposit type" });
+    return;
+  }
+
   var accountType = await Type.findOne({
     TypeGroup: AccountTypeGroupNumber,
     TypeName: requestData.AccountTypeName,
@@ -761,12 +770,20 @@ app.post("/account/close/day", async function (req, res) {
   var depositTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
   var depositTypeRevocate;
   var depositTypeUrgent;
+  var creditTypeDifferentiatede;
+  var creditTypeAnnuity;
   depositTypes.forEach((e) => {
     if (e.TypeName == UrgentDepositName) {
       depositTypeUrgent = e;
     }
     if (e.TypeName == RevocateDepositName) {
       depositTypeRevocate = e;
+    }
+    if (e.TypeName == AnnuityCreditName) {
+      creditTypeAnnuity = e;
+    }
+    if (e.TypeName == DifferentiatedeCreditName) {
+      creditTypeDifferentiatede = e;
     }
   });
 
@@ -779,25 +796,52 @@ app.post("/account/close/day", async function (req, res) {
       e.Id != BankDevelopmentAccountId &&
       e.Id != CashRegisterAccountId
     ) {
-      if (e.IsMain) {
-        result = await MainAccountEndDay(e, date, e.ContractNumber);
-        if (!result.isSucces) {
-          res.status(500);
-          return;
+      if (
+        e.AccountTypeId[0].equals(creditTypeAnnuity._id) ||
+        e.AccountTypeId[0].equals(creditTypeDifferentiatede._id)
+      ) {
+        if (e.IsMain) {
+          var isAnnuityCredit = e.AccountTypeId[0].equals(creditTypeAnnuity._id)
+            ? true
+            : false;
+          result = await MainCreditAccountEndDay(
+            e,
+            date,
+            e.ContractNumber,
+            isAnnuityCredit,
+          );
+          if (!result.isSucces) {
+            res.status(500);
+            return;
+          }
+        } else {
+          result = await SecondCreditAccountEndDay(e, date, e.ContractNumber);
+          if (!result.isSucces) {
+            res.status(500);
+            return;
+          }
         }
       } else {
-        var isUrgent = e.AccountTypeId[0].equals(depositTypeUrgent._id)
-          ? true
-          : false;
-        var result = await SecondAccountEndDay(
-          e,
-          date,
-          isUrgent,
-          e.ContractNumber,
-        );
-        if (!result.isSucces) {
-          res.status(500);
-          return;
+        if (e.IsMain) {
+          result = await MainAccountEndDay(e, date, e.ContractNumber);
+          if (!result.isSucces) {
+            res.status(500);
+            return;
+          }
+        } else {
+          var isUrgent = e.AccountTypeId[0].equals(depositTypeUrgent._id)
+            ? true
+            : false;
+          var result = await SecondAccountEndDay(
+            e,
+            date,
+            isUrgent,
+            e.ContractNumber,
+          );
+          if (!result.isSucces) {
+            res.status(500);
+            return;
+          }
         }
       }
     }
@@ -805,6 +849,152 @@ app.post("/account/close/day", async function (req, res) {
 
   res.send({ result });
 });
+
+async function MainCreditAccountEndDay(
+  account,
+  date,
+  contractNumber,
+  isAnnuityCredit,
+) {
+  var result;
+  if (isAnnuityCredit) {
+    if (date.getDate() == 1 && !(new Date(account.EndDate) < date)) {
+      result = await ExecuteTransactionAsync(
+        CurrencyFromPhisicalMoney,
+        CashRegisterAccountId,
+        account.IncomePerDay,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+      result = await ExecuteTransactionAsync(
+        CashRegisterAccountId,
+        account.Id,
+        account.IncomePerDay,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+      result = await ExecuteTransactionAsync(
+        account.Id,
+        BankDevelopmentAccountId,
+        account.IncomePerDay,
+        date,
+        contractNumber,
+      );
+      if (!result.isSucces) {
+        return result;
+      }
+    }
+  }
+  if (new Date(account.EndDate) < date) {
+    account.IsActive = false;
+    await Account.replaceOne({ Id: account.Id }, account);
+
+    result = await ExecuteTransactionAsync(
+      CurrencyFromPhisicalMoney,
+      CashRegisterAccountId,
+      account.IncomePerDay,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+    result = await ExecuteTransactionAsync(
+      CashRegisterAccountId,
+      account.Id,
+      account.IncomePerDay,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+    result = await ExecuteTransactionAsync(
+      account.Id,
+      BankDevelopmentAccountId,
+      account.IncomePerDay,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+  }
+
+  return { isSucces: true, error: "" };
+}
+
+async function SecondCreditAccountEndDay(account, date, contractNumber) {
+  var result = await ExecuteTransactionAsync(
+    account.Id,
+    BankDevelopmentAccountId,
+    account.IncomePerDay,
+    date,
+    contractNumber,
+  );
+  if (!result.isSucces) {
+    return result;
+  }
+
+  if (date.getDate() == 1 && !(new Date(account.EndDate) < date)) {
+    var cash = -1 * account.Saldo;
+    result = await ExecuteTransactionAsync(
+      CurrencyFromPhisicalMoney,
+      CashRegisterAccountId,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+    result = await ExecuteTransactionAsync(
+      CashRegisterAccountId,
+      account.Id,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+  }
+
+  if (new Date(account.EndDate) < date) {
+    account.IsActive = false;
+    await Account.replaceOne({ Id: account.Id }, account);
+
+    var cash = -1 * account.Saldo;
+    result = await ExecuteTransactionAsync(
+      CurrencyFromPhisicalMoney,
+      CashRegisterAccountId,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+    result = await ExecuteTransactionAsync(
+      CashRegisterAccountId,
+      account.Id,
+      cash,
+      date,
+      contractNumber,
+    );
+    if (!result.isSucces) {
+      return result;
+    }
+  }
+
+  return { isSucces: true, error: "" };
+}
 
 async function RevokeDeposit(contractNumber, res) {
   var accounts = await Account.find({
@@ -1014,7 +1204,14 @@ async function SecondAccountEndDay(account, date, isUrgent, contractNumber) {
   return { isSucces: true, error: "" };
 }
 
-async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
+async function ExecuteTransactionAsync(
+  from,
+  to,
+  value,
+  date,
+  contractNumber,
+  isCredit = false,
+) {
   var source;
   var destination;
   if (from != CurrencyFromPhisicalMoney) {
@@ -1031,7 +1228,7 @@ async function ExecuteTransactionAsync(from, to, value, date, contractNumber) {
     }
   }
 
-  if (from != CurrencyFromPhisicalMoney) {
+  if (from != CurrencyFromPhisicalMoney && isCredit) {
     if (source.Saldo - value < 0) {
       return { isSucces: false, error: "Not enough money" };
     }
@@ -1126,6 +1323,15 @@ app.post("/account/register/credit", async function (req, res) {
     return;
   }
 
+  if (
+    requestData.AccountTypeName != AnnuityCreditName &&
+    requestData.AccountTypeName != DifferentiatedeCreditName
+  ) {
+    res.status(422);
+    res.send({ message: "Wrong credit type" });
+    return;
+  }
+
   var accountType = await Type.findOne({
     TypeGroup: AccountTypeGroupNumber,
     TypeName: requestData.AccountTypeName,
@@ -1190,10 +1396,8 @@ app.post("/account/register/credit", async function (req, res) {
     requestData.StartDate,
     "day",
   );
-  var monthDifference = dayjs(requestData.EndDate).diff(
-    requestData.StartDate,
-    "month",
-  );
+  var monthDifference =
+    dayjs(requestData.EndDate).diff(requestData.StartDate, "month") + 1;
 
   // var creditTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
   // var creditTypeDifferentiatede;
@@ -1235,6 +1439,8 @@ app.post("/account/register/credit", async function (req, res) {
     newAccount.IncomePerDay = Math.trunc(
       newAccount.ContractStartDeposit / monthDifference,
     );
+  } else {
+    newAccount.IncomePerDay = newAccount.ContractStartDeposit;
   }
   await newAccount.save();
 
@@ -1253,14 +1459,12 @@ app.post("/account/register/credit", async function (req, res) {
     ContractStartDeposit: Math.trunc(
       requestData.ContractStartDeposit * CashAccuracy,
     ),
-    IncomePerDay:
-      -1 *
-      Math.trunc(
-        requestData.ContractStartDeposit *
-          ((dateDifference * requestData.ContractPercent) / 365 / 100 + 1) *
-          CashAccuracy -
-          requestData.ContractStartDeposit * CashAccuracy,
-      ),
+    IncomePerDay: Math.trunc(
+      requestData.ContractStartDeposit *
+        ((dateDifference * requestData.ContractPercent) / 365 / 100 + 1) *
+        CashAccuracy -
+        requestData.ContractStartDeposit * CashAccuracy,
+    ),
     Credit: 0,
     Debit: 0,
     Saldo: 0,
