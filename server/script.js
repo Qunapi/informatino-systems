@@ -88,6 +88,18 @@ db.once("open", async function () {
   });
   await newType.save();
 
+  newType = new Type({
+    TypeGroup: 4,
+    TypeName: "Annuity Credit",
+  });
+  await newType.save();
+
+  newType = new Type({
+    TypeGroup: 4,
+    TypeName: "Differentiated Credit",
+  });
+  await newType.save();
+
   var date = new Date();
   newType = new Type({
     TypeGroup: 6,
