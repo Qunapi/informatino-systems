@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const { Schema } = mongoose;
 
+const { AccountSchema } = require("./models");
+const { ClientSchema } = require("./models");
+const { TypeSchema } = require("./models");
+const { BankCardSchema } = require("./models");
+
 const CashAccuracy = 100000;
 
 mongoose.Promise = global.Promise;
@@ -28,7 +33,7 @@ db.once("open", async function () {
     AccountTypeId: null,
     AccountCurrencyTypeId: null,
     AccountName: "Bank Development Account",
-    ContractNumber: null,
+    ContractNumber: "123321",
     ContractTime: 0,
     ContractPercent: 0,
     ContractStartDeposit: 0,
@@ -153,72 +158,22 @@ db.once("open", async function () {
   });
   await newClient.save();
 
+  let newBankCard = new BankCard({
+    CardNumber: "4467603566242576",
+    CardPassword: "6241",
+    ClientId: "8c8e7386-b764-4ba7-96b4-341a6c027126",
+    MainAccountId: "61ef1321-a92c-4e6a-b8f4-86c9af319e10",
+    ContractNumber: "123321",
+  });
+  await newBankCard.save();
+
   console.log("Completed");
 });
 
-const AccountSchema = new mongoose.Schema(
-  {
-    Id: String,
-    ClientId: [{ type: Schema.Types.ObjectId, ref: "Clients" }],
-    AccountNumber: String,
-    AccountCode: String,
-    AccountActiveType: Number,
-    AccountTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    AccountCurrencyTypeId: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    AccountName: String,
-    ContractNumber: String,
-    ContractTime: Number,
-    ContractPercent: Number,
-    ContractStartDeposit: Number,
-    IncomePerDay: Number,
-    Credit: Number,
-    Debit: Number,
-    Saldo: Number,
-    IsActive: Boolean,
-    StartDate: Date,
-    EndDate: Date,
-    IsMain: Boolean,
-  },
-  { timestamps: true },
-);
 const Account = mongoose.model("Accounts", AccountSchema);
 
-const TypeSchema = new mongoose.Schema(
-  {
-    TypeGroup: Number,
-    TypeName: String,
-  },
-  { timestamps: true },
-);
 const Type = mongoose.model("Types", TypeSchema);
 
-const ClientSchema = new mongoose.Schema(
-  {
-    Id: String,
-    Surname: String,
-    Name: String,
-    MiddleName: String,
-    DateOfBirth: Date,
-    PassportSerialNumber: String,
-    PassportNumber: String,
-    PlaceOfIssue: String,
-    DateOfIssue: Date,
-    IdentificationalNumber: String,
-    PlaceOfBirth: String,
-    HomeCity: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    HomeAddress: String,
-    HomeTelephone: String,
-    MobileTelephone: String,
-    EMail: String,
-    PlaceOfWork: String,
-    Position: String,
-    FamilyStatus: String,
-    Citizenship: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    Disability: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    IsRetiree: Boolean,
-    Sallary: Number,
-    IsConscript: Boolean,
-  },
-  { timestamps: true },
-);
 const Client = mongoose.model("Clients", ClientSchema);
+
+const BankCard = mongoose.model("BankCards", BankCardSchema);

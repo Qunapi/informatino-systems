@@ -11,6 +11,10 @@ const e = require("express");
 var dayjs = require("dayjs");
 const { off } = require("process");
 const { AccountSchema } = require("./models");
+const { ClientSchema } = require("./models");
+const { TypeSchema } = require("./models");
+const { TransactionLogSchema } = require("./models");
+const { BankCardSchema } = require("./models");
 
 const USER_VALIDATION_SCHEMA = yup.object().shape({
   Surname: yup
@@ -104,61 +108,13 @@ db.once("open", async function () {
 
 const Account = mongoose.model("Accounts", AccountSchema);
 
-const ClientSchema = new mongoose.Schema(
-  {
-    Id: String,
-    Surname: String,
-    Name: String,
-    MiddleName: String,
-    DateOfBirth: Date,
-    PassportSerialNumber: String,
-    PassportNumber: String,
-    PlaceOfIssue: String,
-    DateOfIssue: Date,
-    IdentificationalNumber: String,
-    PlaceOfBirth: String,
-    HomeCity: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    HomeAddress: String,
-    HomeTelephone: String,
-    MobileTelephone: String,
-    EMail: String,
-    PlaceOfWork: String,
-    Position: String,
-    FamilyStatus: String,
-    Citizenship: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    Disability: [{ type: Schema.Types.ObjectId, ref: "Types" }],
-    IsRetiree: Boolean,
-    Sallary: Number,
-    IsConscript: Boolean,
-  },
-  { timestamps: true },
-);
 const Client = mongoose.model("Clients", ClientSchema);
 
-const TypeSchema = new mongoose.Schema(
-  {
-    TypeGroup: Number,
-    TypeName: String,
-  },
-  { timestamps: true },
-);
 const Type = mongoose.model("Types", TypeSchema);
 
-const TransactionLogSchema = new mongoose.Schema(
-  {
-    ContractNumber: String,
-    Date: Date,
-    FromAccount: String,
-    FromAccountName: String,
-    ToAccount: String,
-    ToAccountName: String,
-    Cash: Number,
-    TypeTo: String,
-    TypeFrom: String,
-  },
-  { timestamps: true },
-);
 const TransactionLog = mongoose.model("TransactionLogs", TransactionLogSchema);
+
+const BankCard = mongoose.model("BankCards", BankCardSchema);
 
 const CityGroupNumber = 1;
 const CitizenshipGroupNumber = 2;
@@ -1483,7 +1439,147 @@ app.post("/account/register/credit", async function (req, res) {
     return;
   }
 
+  var bankCard = await RegisterBankCardAsync(
+    client.Id,
+    newAccount.Id,
+    requestData.ContractNumber,
+  );
+
   res.status(200);
-  res.send({ newAccount });
+  res.send({ newAccount, bankCard });
   return;
 });
+
+app.get("/card/authenticate", async function (req, res) {
+  var query = req.query;
+  var validationResult = await ValidateBankCardAsync(
+    query.CardNumber,
+    query.CardPassword,
+  );
+  if (!validationResult.isSucces) {
+    res.status(401);
+    res.send({ validationResult });
+    return;
+  }
+
+  res.status(200);
+  res.send({ validationResult });
+});
+
+app.get("/card/status", async function (req, res) {
+  var query = req.query;
+  var validationResult = await ValidateBankCardAsync(
+    query.CardNumber,
+    query.CardPassword,
+  );
+  if (!validationResult.isSucces) {
+    res.status(403);
+    res.send({ validationResult });
+    return;
+  }
+
+  var bankCard = await BankCard.findOne({ CardNumber: query.CardNumber });
+  var mainAccount = await Account.findOne({ Id: bankCard.MainAccountId });
+  if (!mainAccount) {
+    res.status(500);
+    res.send({ message: "Account does not exists" });
+    return;
+  }
+
+  res.status(200);
+  res.send({ mainAccount });
+});
+
+app.get("/card/withdraw", async function (req, res) {
+  var query = req.query;
+  var validationResult = await ValidateBankCardAsync(
+    query.CardNumber,
+    query.CardPassword,
+  );
+  if (!validationResult.isSucces) {
+    res.status(403);
+    res.send({ validationResult });
+    return;
+  }
+
+  var bankCard = await BankCard.findOne({ CardNumber: query.CardNumber });
+  var mainAccount = await Account.findOne({ Id: bankCard.MainAccountId });
+  if (!mainAccount) {
+    res.status(500);
+    res.send({ message: "Account does not exists" });
+    return;
+  }
+
+  if (!query.Amount || isNaN(query.Amount) || query.Amount <= 0) {
+    res.status(422);
+    res.send({ message: "Value cannot be lesser than 0" });
+    return;
+  }
+
+  var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
+  date = new Date(date.TypeName);
+
+  var result = await ExecuteTransactionAsync(
+    bankCard.MainAccountId,
+    CashRegisterAccountId,
+    Math.trunc(query.Amount * CashAccuracy),
+    date,
+    mainAccount.ContractNumber,
+    true,
+  );
+  if (!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+    return;
+  }
+  result = await ExecuteTransactionAsync(
+    CashRegisterAccountId,
+    CurrencyFromPhisicalMoney,
+    query.Amount,
+    date,
+    mainAccount.ContractNumber,
+  );
+  if (!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+    return;
+  }
+
+  res.status(200);
+  res.send({ isSucces: true });
+});
+
+async function RegisterBankCardAsync(clientId, mainAccountId, contractNumber) {
+  var password = Math.floor(Math.random() * 8999 + 1000);
+  var bankCardNumber = Math.floor(
+    Math.random() * 8999999999999999 + 1000000000000000,
+  );
+  var bankCard = new BankCard({
+    CardNumber: bankCardNumber,
+    CardPassword: password.toString(),
+    ClientId: clientId,
+    MainAccountId: mainAccountId,
+    ContractNumber: contractNumber,
+  });
+  await bankCard.save();
+  return bankCard;
+}
+
+async function ValidateBankCardAsync(cardNumber, cardPassword) {
+  var bankCard = await BankCard.findOne({ CardNumber: cardNumber });
+  if (!bankCard) {
+    return {
+      isSucces: false,
+      message: "Card with this Number does not exists",
+    };
+  }
+
+  if (bankCard.CardPassword != cardPassword) {
+    return {
+      isSucces: false,
+      message: "Invalid password",
+    };
+  }
+
+  return { isSucces: true };
+}
