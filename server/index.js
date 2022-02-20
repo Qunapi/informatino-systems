@@ -216,6 +216,11 @@ const SecondDepositAccountName = "Percent Account";
 const TransactionDebitTypeName = "Debit";
 const TransactionCreditTypeName = "Credit";
 
+const UrgentDepositName = "Urgent Deposit";
+const RevocateDepositName = "Revocate Deposit";
+const AnnuityCreditName = "Annuity Credit";
+const DifferentiatedeCreditName = "Differentiated Credit";
+
 const CashAccuracy = 100000;
 
 app.post("/clients", async function (req, res) {
@@ -757,10 +762,10 @@ app.post("/account/close/day", async function (req, res) {
   var depositTypeRevocate;
   var depositTypeUrgent;
   depositTypes.forEach((e) => {
-    if (e.TypeName == "Urgent") {
+    if (e.TypeName == UrgentDepositName) {
       depositTypeUrgent = e;
     }
-    if (e.TypeName == "Revocate") {
+    if (e.TypeName == RevocateDepositName) {
       depositTypeRevocate = e;
     }
   });
@@ -801,12 +806,13 @@ app.post("/account/close/day", async function (req, res) {
   res.send({ result });
 });
 
-async function RevokeDeposit(contractNumber) {
+async function RevokeDeposit(contractNumber, res) {
   var accounts = await Account.find({
     ContractNumber: contractNumber,
     IsActive: true,
   });
   if (accounts?.length == 0) {
+    res.status(422);
     return { message: "Account does not exists" };
   }
 
@@ -817,15 +823,16 @@ async function RevokeDeposit(contractNumber) {
   var depositTypeRevocate;
   var depositTypeUrgent;
   depositTypes.forEach((e) => {
-    if (e.TypeName == "Urgent") {
+    if (e.TypeName == UrgentDepositName) {
       depositTypeUrgent = e;
     }
-    if (e.TypeName == "Revocate") {
+    if (e.TypeName == RevocateDepositName) {
       depositTypeRevocate = e;
     }
   });
 
   if (accounts[0].AccountTypeId[0].equals(depositTypeUrgent._id)) {
+    res.status(422);
     return { message: "Cannot revocate urgent account" };
   }
 
@@ -844,6 +851,7 @@ async function RevokeDeposit(contractNumber) {
         contractNumber,
       );
       if (!result.isSucces) {
+        res.status(500);
         return result;
       }
       result = await ExecuteTransactionAsync(
@@ -854,6 +862,7 @@ async function RevokeDeposit(contractNumber) {
         contractNumber,
       );
       if (!result.isSucces) {
+        res.status(500);
         return result;
       }
       result = await ExecuteTransactionAsync(
@@ -864,6 +873,7 @@ async function RevokeDeposit(contractNumber) {
         contractNumber,
       );
       if (!result.isSucces) {
+        res.status(500);
         return result;
       }
     } else {
@@ -879,6 +889,7 @@ async function RevokeDeposit(contractNumber) {
         contractNumber,
       );
       if (!result.isSucces) {
+        res.status(500);
         return result;
       }
 
@@ -1100,4 +1111,208 @@ app.post("/account/revoke/:id", async function (req, res) {
   var resault = await RevokeDeposit(req.params.id);
   res.status(200);
   res.send({ resault });
+});
+
+app.post("/account/register/credit", async function (req, res) {
+  let requestData = req.body;
+
+  var client = await Client.findOne({
+    PassportSerialNumber: requestData.PassportSerialNumber,
+    PassportNumber: requestData.PassportNumber,
+  });
+  if (!client) {
+    res.status(422);
+    res.send({ message: "Client does not exists" });
+    return;
+  }
+
+  var accountType = await Type.findOne({
+    TypeGroup: AccountTypeGroupNumber,
+    TypeName: requestData.AccountTypeName,
+  });
+  if (!accountType) {
+    res.status(422);
+    res.send({ message: "Account Type does not exists" });
+    return;
+  }
+
+  var currencyType = await Type.findOne({
+    TypeGroup: AccountCurrencyTypeGroupNumber,
+    TypeName: requestData.CurrencyType,
+  });
+  if (!currencyType) {
+    res.status(422);
+    res.send({ message: "Currency Type does not exists" });
+    return;
+  }
+
+  var contractAccount = await Account.findOne({
+    ContractNumber: requestData.ContractNumber,
+  });
+  if (contractAccount) {
+    res.status(500);
+    res.send({ message: "Contract Number already exists" });
+    return;
+  }
+
+  var uniqueNumberMain =
+    Math.floor(Math.random() * 99999999).toString() + CheckKey;
+  var uniqueNumber = Math.floor(Math.random() * 99999999).toString() + CheckKey;
+
+  switch (requestData.ClientState) {
+    case LegalEntity:
+      uniqueNumber = LegalEntityCode + uniqueNumber;
+      uniqueNumberMain = LegalEntityCode + uniqueNumberMain;
+      break;
+    case IndividualEntrepreneur:
+      uniqueNumber = IndividualEntrepreneurCode + uniqueNumber;
+      uniqueNumberMain = IndividualEntrepreneurCode + uniqueNumberMain;
+      break;
+    case Individual:
+      uniqueNumber = IndividualCode + uniqueNumber;
+      uniqueNumberMain = IndividualCode + uniqueNumberMain;
+      break;
+  }
+  var ExistingAccount = await Account.findOne({ AccountNumber: uniqueNumber });
+  if (ExistingAccount) {
+    res.status(422);
+    res.send({ message: "Account already exists" });
+    return;
+  }
+  ExistingAccount = await Account.findOne({ AccountNumber: uniqueNumberMain });
+  if (ExistingAccount) {
+    res.status(422);
+    res.send({ message: "Account already exists" });
+    return;
+  }
+
+  var dateDifference = dayjs(requestData.EndDate).diff(
+    requestData.StartDate,
+    "day",
+  );
+  var monthDifference = dayjs(requestData.EndDate).diff(
+    requestData.StartDate,
+    "month",
+  );
+
+  // var creditTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
+  // var creditTypeDifferentiatede;
+  // var creditTypeAnnuity;
+  // creditTypes.forEach((e) => {
+  //   if (e.TypeName == AnnuityCreditName) {
+  //     creditTypeAnnuity = e;
+  //   }
+  //   if (e.TypeName == DifferentiatedeCreditName) {
+  //     creditTypeDifferentiatede = e;
+  //   }
+  // });
+
+  let newAccount = new Account({
+    Id: uuidv4(),
+    ClientId: client._id,
+    AccountNumber: uniqueNumberMain,
+    AccountCode: DepositAccountCode,
+    AccountActiveType: AccountActiveTypePassive,
+    AccountTypeId: accountType._id,
+    AccountCurrencyTypeId: currencyType._id,
+    AccountName: MainDepositAccountName,
+    ContractNumber: requestData.ContractNumber,
+    ContractTime: requestData.ContractTime,
+    ContractPercent: requestData.ContractPercent,
+    ContractStartDeposit: Math.trunc(
+      requestData.ContractStartDeposit * CashAccuracy,
+    ),
+    IncomePerDay: 0,
+    Credit: 0,
+    Debit: 0,
+    Saldo: 0,
+    IsActive: true,
+    StartDate: requestData.StartDate,
+    EndDate: requestData.EndDate,
+    IsMain: true,
+  });
+  if (requestData.AccountTypeName == AnnuityCreditName) {
+    newAccount.IncomePerDay = Math.trunc(
+      newAccount.ContractStartDeposit / monthDifference,
+    );
+  }
+  await newAccount.save();
+
+  let newAccountCredit = new Account({
+    Id: uuidv4(),
+    ClientId: client._id,
+    AccountNumber: uniqueNumber,
+    AccountCode: DepositAccountCode,
+    AccountActiveType: AccountActiveTypePassive,
+    AccountTypeId: accountType._id,
+    AccountCurrencyTypeId: currencyType._id,
+    AccountName: SecondDepositAccountName,
+    ContractNumber: requestData.ContractNumber,
+    ContractTime: requestData.ContractTime,
+    ContractPercent: requestData.ContractPercent,
+    ContractStartDeposit: Math.trunc(
+      requestData.ContractStartDeposit * CashAccuracy,
+    ),
+    IncomePerDay:
+      -1 *
+      Math.trunc(
+        requestData.ContractStartDeposit *
+          ((dateDifference * requestData.ContractPercent) / 365 / 100 + 1) *
+          CashAccuracy -
+          requestData.ContractStartDeposit * CashAccuracy,
+      ),
+    Credit: 0,
+    Debit: 0,
+    Saldo: 0,
+    IsActive: true,
+    StartDate: requestData.StartDate,
+    EndDate: requestData.EndDate,
+    IsMain: false,
+  });
+  await newAccountCredit.save();
+
+  var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
+  date = new Date(date.TypeName);
+
+  var cash = Math.trunc(requestData.ContractStartDeposit * CashAccuracy);
+  var result = await ExecuteTransactionAsync(
+    BankDevelopmentAccountId,
+    newAccount.Id,
+    cash,
+    date,
+    requestData.ContractNumber,
+  );
+  if (!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+    return;
+  }
+  result = await ExecuteTransactionAsync(
+    newAccount.Id,
+    CashRegisterAccountId,
+    cash,
+    date,
+    requestData.ContractNumber,
+  );
+  if (!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+    return;
+  }
+  result = await ExecuteTransactionAsync(
+    CashRegisterAccountId,
+    CurrencyFromPhisicalMoney,
+    cash,
+    date,
+    requestData.ContractNumber,
+  );
+  if (!result.isSucces) {
+    res.status(500);
+    res.send({ result });
+    return;
+  }
+
+  res.status(200);
+  res.send({ newAccount });
+  return;
 });
