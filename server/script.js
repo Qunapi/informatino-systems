@@ -6,7 +6,7 @@ const CashAccuracy = 100000;
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
-  "mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false",
+  "mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/BankDB?retryWrites=true&w=majority",
   { useNewUrlParser: true, useUnifiedTopology: true },
 );
 const db = mongoose.connection;

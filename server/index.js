@@ -92,7 +92,7 @@ app.use(bodyParser.json());
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
-  "mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false",
+  "mongodb+srv://User:1111@cluster0.9sxyn.mongodb.net/BankDB?retryWrites=true&w=majority",
   { useNewUrlParser: true, useUnifiedTopology: true },
 );
 const db = mongoose.connection;
@@ -804,10 +804,10 @@ app.post("/account/close/day", async function (req, res) {
 async function RevokeDeposit(contractNumber) {
   var accounts = await Account.find({
     ContractNumber: contractNumber,
-    IsActive : true
+    IsActive: true,
   });
   if (accounts?.length == 0) {
-    return ({ message: "Account does not exists" });
+    return { message: "Account does not exists" };
   }
 
   var date = await Type.findOne({ TypeGroup: AccountDateGroupNumber });
@@ -825,9 +825,9 @@ async function RevokeDeposit(contractNumber) {
     }
   });
 
- if (accounts[0].AccountTypeId[0].equals(depositTypeUrgent._id)) {
-  return ({ message: "Cannot revocate urgent account" }); 
- }
+  if (accounts[0].AccountTypeId[0].equals(depositTypeUrgent._id)) {
+    return { message: "Cannot revocate urgent account" };
+  }
 
   for (var i = 0; i < accounts.length; i++) {
     var acc = accounts[i];
@@ -835,7 +835,7 @@ async function RevokeDeposit(contractNumber) {
     if (acc.IsMain) {
       acc.IsActive = false;
       await Account.replaceOne({ Id: acc.Id }, acc);
-  
+
       var result = await ExecuteTransactionAsync(
         BankDevelopmentAccountId,
         acc.Id,
@@ -869,7 +869,7 @@ async function RevokeDeposit(contractNumber) {
     } else {
       acc.IsActive = false;
       await Account.replaceOne({ Id: acc.Id }, acc);
-  
+
       var cash = acc.Saldo;
       result = await ExecuteTransactionAsync(
         acc.Id,
@@ -881,7 +881,7 @@ async function RevokeDeposit(contractNumber) {
       if (!result.isSucces) {
         return result;
       }
-  
+
       result = await ExecuteTransactionAsync(
         CashRegisterAccountId,
         CurrencyFromPhisicalMoney,
@@ -893,7 +893,6 @@ async function RevokeDeposit(contractNumber) {
         return result;
       }
     }
-
   }
 }
 
@@ -1097,8 +1096,8 @@ app.get("/account/transactions/:ContractNumber", async function (req, res) {
   res.send({ transactions });
 });
 
-app.post("/account/revoke/:id", async function (req,res) {
+app.post("/account/revoke/:id", async function (req, res) {
   var resault = await RevokeDeposit(req.params.id);
   res.status(200);
-  res.send({resault});
+  res.send({ resault });
 });
