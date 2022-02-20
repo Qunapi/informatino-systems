@@ -1308,7 +1308,7 @@ app.get("/account/transactions/:ContractNumber", async function (req, res) {
 });
 
 app.post("/account/revoke/:id", async function (req, res) {
-  var resault = await RevokeDeposit(req.params.id);
+  var resault = await RevokeDeposit(req.params.id, res);
   res.status(200);
   res.send({ resault });
 });
