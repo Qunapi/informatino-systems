@@ -1022,9 +1022,9 @@ async function RevokeDeposit(contractNumber, res) {
     }
   });
 
-  if (accounts[0].AccountTypeId[0].equals(depositTypeUrgent._id)) {
+  if (!accounts[0].AccountTypeId[0].equals(depositTypeRevocate._id)) {
     res.status(422);
-    return { message: "Cannot revocate urgent account" };
+    return { message: "Cannot revocate account" };
   }
 
   for (var i = 0; i < accounts.length; i++) {
@@ -1401,18 +1401,6 @@ app.post("/account/register/credit", async function (req, res) {
   );
   var monthDifference =
     dayjs(requestData.EndDate).diff(requestData.StartDate, "month") + 1;
-
-  // var creditTypes = await Type.find({ TypeGroup: AccountTypeGroupNumber });
-  // var creditTypeDifferentiatede;
-  // var creditTypeAnnuity;
-  // creditTypes.forEach((e) => {
-  //   if (e.TypeName == AnnuityCreditName) {
-  //     creditTypeAnnuity = e;
-  //   }
-  //   if (e.TypeName == DifferentiatedeCreditName) {
-  //     creditTypeDifferentiatede = e;
-  //   }
-  // });
 
   let newAccount = new Account({
     Id: uuidv4(),
