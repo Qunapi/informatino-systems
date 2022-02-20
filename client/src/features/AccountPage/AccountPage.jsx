@@ -72,7 +72,10 @@ export const AccountPage = () => {
           setTransactions(e.data.transactions);
         });
       })
-      .then(() => toast.success("Account closed"));
+      .then(() => toast.success("Account closed"))
+      .catch(() => {
+        toast.error("Cannot close account");
+      });
   }
 
   return (
