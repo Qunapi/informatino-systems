@@ -7,8 +7,15 @@ import * as dayjs from "dayjs";
 export const CreateAccount = () => {
   const onSubmit = (data) => {
     data.EndDate = dayjs(data.EndDate).subtract(1, "day").toISOString();
+    const condition = data.AccountTypeName.value
+      .toLowerCase()
+      .includes("deposit");
 
-    accountService.createAccount(data).then(toast("Account Created"));
+    if (condition) {
+      accountService.createDeposit(data).then(toast("Deposit Created"));
+    } else {
+      accountService.createCredit(data).then(toast("Credit Created"));
+    }
   };
 
   const options = useAccountFormOptions();
