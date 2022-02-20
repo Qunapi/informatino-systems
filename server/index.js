@@ -937,6 +937,7 @@ async function SecondCreditAccountEndDay(account, date, contractNumber) {
     account.IncomePerDay,
     date,
     contractNumber,
+    true,
   );
   if (!result.isSucces) {
     return result;
@@ -1228,9 +1229,11 @@ async function ExecuteTransactionAsync(
     }
   }
 
-  if (from != CurrencyFromPhisicalMoney && isCredit) {
-    if (source.Saldo - value < 0) {
-      return { isSucces: false, error: "Not enough money" };
+  if (from != CurrencyFromPhisicalMoney) {
+    if (!isCredit) {
+      if (source.Saldo - value < 0) {
+        return { isSucces: false, error: "Not enough money" };
+      }
     }
 
     if (source.AccountActiveType == AccountActiveTypeActive) {
@@ -1416,7 +1419,7 @@ app.post("/account/register/credit", async function (req, res) {
     ClientId: client._id,
     AccountNumber: uniqueNumberMain,
     AccountCode: DepositAccountCode,
-    AccountActiveType: AccountActiveTypePassive,
+    AccountActiveType: AccountActiveTypeActive,
     AccountTypeId: accountType._id,
     AccountCurrencyTypeId: currencyType._id,
     AccountName: MainDepositAccountName,
@@ -1449,7 +1452,7 @@ app.post("/account/register/credit", async function (req, res) {
     ClientId: client._id,
     AccountNumber: uniqueNumber,
     AccountCode: DepositAccountCode,
-    AccountActiveType: AccountActiveTypePassive,
+    AccountActiveType: AccountActiveTypeActive,
     AccountTypeId: accountType._id,
     AccountCurrencyTypeId: currencyType._id,
     AccountName: SecondDepositAccountName,
