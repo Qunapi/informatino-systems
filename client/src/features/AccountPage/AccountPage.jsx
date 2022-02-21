@@ -24,10 +24,10 @@ export const AccountPage = () => {
     });
   }, [contractNumber]);
 
-  const accounts = new Map();
+  const accountNames = new Map();
   transactions.forEach((e) => {
-    e.ToAccountName && accounts.set(e.ToAccountName, "");
-    e.FromAccountName && accounts.set(e.FromAccountName, "");
+    e.ToAccountName && accountNames.set(e.ToAccountName, "");
+    e.FromAccountName && accountNames.set(e.FromAccountName, "");
   });
 
   const rows = transactions.map((transaction) => {
@@ -80,6 +80,9 @@ export const AccountPage = () => {
       });
   }
 
+  const accountNameKeys = [...accountNames.keys()];
+  accountNameKeys.sort();
+
   return (
     <div>
       <NavBar />
@@ -99,7 +102,7 @@ export const AccountPage = () => {
               <TableRow>
                 <TableCell>Date</TableCell>
                 <TableCell>Money</TableCell>
-                {Array.from(accounts.keys()).map((e) => {
+                {Array.from(accountNameKeys).map((e) => {
                   return (
                     <React.Fragment key={e}>
                       <TableCell>{e} debit</TableCell>
@@ -120,7 +123,7 @@ export const AccountPage = () => {
                       {dayjs(row.date).format("DD.MM.YYYY")}
                     </TableCell>
                     <TableCell>{Number(row.money || 0).toFixed(2)}</TableCell>
-                    {Array.from(accounts.keys()).map((e) => {
+                    {Array.from(accountNameKeys).map((e) => {
                       return (
                         <React.Fragment key={e}>
                           <TableCell>
