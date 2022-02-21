@@ -12,9 +12,23 @@ export const CreateAccount = () => {
       .includes("deposit");
 
     if (condition) {
-      accountService.createDeposit(data).then(toast("Deposit Created"));
+      accountService
+        .createDeposit(data)
+        .then(() => toast("Deposit Created"))
+        .catch((e) =>
+          toast.error(
+            e?.response?.data?.resault?.message || "Cannot create account",
+          ),
+        );
     } else {
-      accountService.createCredit(data).then(toast("Credit Created"));
+      accountService
+        .createCredit(data)
+        .then(() => toast("Credit Created"))
+        .catch((e) =>
+          toast.error(
+            e?.response?.data?.resault?.message || "Cannot create account",
+          ),
+        );
     }
   };
 

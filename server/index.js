@@ -1538,7 +1538,7 @@ app.get("/card/withdraw", async function (req, res) {
   result = await ExecuteTransactionAsync(
     CashRegisterAccountId,
     CurrencyFromPhisicalMoney,
-    query.Amount,
+    Math.trunc(query.Amount * CashAccuracy),
     date,
     mainAccount.ContractNumber,
   );
