@@ -12,7 +12,7 @@ export const Atm = () => {
     <div>
       <NavBar />
       {authInfo ? (
-        <AtmInfo authInfo={authInfo} />
+        <AtmInfo authInfo={authInfo} setAuthInfo={setAuthInfo} />
       ) : (
         <AtmAuth setAuthInfo={setAuthInfo} />
       )}

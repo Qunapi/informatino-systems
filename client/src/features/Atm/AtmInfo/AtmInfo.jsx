@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { atmService } from "../../../services/atmService";
 
-export const AtmInfo = ({ authInfo }) => {
+export const AtmInfo = ({ authInfo, setAuthInfo }) => {
   const [info, setInfo] = useState({});
 
   async function fetchInfo() {
@@ -34,6 +34,10 @@ export const AtmInfo = ({ authInfo }) => {
         fetchInfo();
       })
       .catch((e) => toast.error("Error"));
+  };
+
+  const ejectCard = () => {
+    setAuthInfo(undefined);
   };
 
   return (
@@ -71,9 +75,18 @@ export const AtmInfo = ({ authInfo }) => {
           min="1"
         />
         <Button sx={{ m: 2 }} variant="contained" color="success" type="submit">
-          Success
+          Withdraw
         </Button>
       </form>
+      <Button
+        sx={{ m: 2 }}
+        variant="contained"
+        color="warning"
+        type="button"
+        onClick={ejectCard}
+      >
+        Eject Card
+      </Button>
     </Paper>
   );
 };
