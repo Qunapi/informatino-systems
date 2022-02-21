@@ -43,9 +43,19 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
   return (
     <Paper>
       {Object.entries(info).map(([key, value]) => {
+        const filter = (value) =>
+          !(
+            key === "_id" ||
+            key === "Id" ||
+            key === "updatedAt" ||
+            key === "createdAt" ||
+            key === "StartDate" ||
+            key === "EndDate" ||
+            key === "IsMain"
+          );
         return (
           <React.Fragment key={key}>
-            {value ? (
+            {value && filter(value) ? (
               <Typography
                 sx={(theme) => ({
                   textDecoration: "none",

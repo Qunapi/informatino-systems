@@ -1486,7 +1486,10 @@ app.get("/card/status", async function (req, res) {
     return;
   }
 
-  res.status(200);
+  mainAccount.Saldo = Math.trunc(mainAccount.Saldo) / CashAccuracy;
+  mainAccount.Credit = Math.trunc(mainAccount.Credit) / CashAccuracy;
+  mainAccount.Debit = Math.trunc(mainAccount.Debit) / CashAccuracy;
+
   res.send({ mainAccount });
 });
 
