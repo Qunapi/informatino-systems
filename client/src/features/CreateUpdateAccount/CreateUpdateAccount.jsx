@@ -11,18 +11,6 @@ import * as dayjs from "dayjs";
 import { useEffect } from "react";
 import { userService } from "../../services/userService";
 
-// PassportSerialNumber
-// PassportNumber
-// AccountTypeName
-// CurrencyType! account/currencies
-// ClientState!
-// ContractNumber!
-// ContractTime
-// ContractPercent
-// ContractStartDeposit
-// StartDate
-// EndDate
-
 const clientStateOptions = [
   {
     label: "Физический",
@@ -56,7 +44,6 @@ export const CreateUpdateAccount = ({
   });
 
   const [user, setUser] = useState(undefined);
-  console.log(user);
 
   const [StartDate, EndDate, PassportSerialNumber, PassportNumber] = watch([
     "StartDate",
@@ -79,6 +66,7 @@ export const CreateUpdateAccount = ({
 
   React.useEffect(() => {
     getUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [PassportSerialNumber, PassportNumber]);
 
   const dateDiff = EndDate?.diff(StartDate, "day");

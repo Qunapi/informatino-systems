@@ -10,6 +10,7 @@ import { UpdateUser } from "./features/CreateUpdateUser/UpdateUser";
 import { CreateUser } from "./features/CreateUpdateUser/CreateUser";
 import { CreateAccount } from "./features/CreateUpdateAccount/CreateAccount";
 import { AccountPage } from "./features/AccountPage/AccountPage";
+import { Atm } from "./features/Atm/Atm";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/users" element={<DataTable />} />
             <Route path="/accounts/create" element={<CreateAccount />} />
             <Route path="/accounts/:contractNumber" element={<AccountPage />} />
+            <Route path="/atm" element={<Atm />} />
             <Route path="/*" element={<DataTable />} />
           </Routes>
         </BrowserRouter>

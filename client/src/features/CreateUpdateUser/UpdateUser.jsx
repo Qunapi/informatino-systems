@@ -32,7 +32,7 @@ export const UpdateUser = () => {
     const result = await accountService.getUserAccounts(id);
     setAccounts(result.data.accounts);
   };
-  console.log(accounts);
+
   useEffect(() => {
     getUser();
   }, [getUser]);
