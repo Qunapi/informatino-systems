@@ -3,9 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { atmService } from "../../../services/atmService";
+import { AtmDialog } from "../AtmDialog/AtmDialog";
+import { AtmDialogCheck } from "../AtmDialogCheck/AtmDialogCheck";
 
 export const AtmInfo = ({ authInfo, setAuthInfo }) => {
   const [info, setInfo] = useState({});
+
+  const [lastTransaction, setLastTransaction] = useState();
 
   async function fetchInfo() {
     atmService
@@ -31,7 +35,9 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
       .withdraw({ ...data, ...authInfo })
       .then((e) => {
         toast.success("Success");
+        setOpen(true);
         fetchInfo();
+        setLastTransaction({ amount: data.Amount, date: new Date() });
       })
       .catch((e) => toast.error("Error"));
   };
@@ -40,8 +46,23 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
     setAuthInfo(undefined);
   };
 
+  const [open, setOpen] = React.useState(false);
+
+  const onSuccess = () => {
+    setFinishOpen(true);
+  };
+
+  const [finishOpen, setFinishOpen] = useState(false);
+
   return (
     <Paper>
+      <AtmDialog onSuccess={onSuccess} open={open} setOpen={setOpen} />
+      <AtmDialogCheck
+        amount={lastTransaction?.amount}
+        date={lastTransaction?.date}
+        open={finishOpen}
+        setOpen={setFinishOpen}
+      />
       {Object.entries(info).map(([key, value]) => {
         const filter = (value) =>
           !(
