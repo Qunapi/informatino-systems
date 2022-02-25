@@ -6,7 +6,7 @@ import { AtmInfo } from "./AtmInfo/AtmInfo";
 const DEFAULT_CARD = { CardNumber: 4467603566242576, CardPassword: 6241 };
 
 export const Atm = () => {
-  const [authInfo, setAuthInfo] = useState(DEFAULT_CARD);
+  const [authInfo, setAuthInfo] = useState();
 
   return (
     <div>

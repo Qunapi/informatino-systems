@@ -10,6 +10,7 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
   const [info, setInfo] = useState({});
 
   const [lastTransaction, setLastTransaction] = useState();
+  const [widthDrawAmount, setWidthDrawAmount] = useState(0);
 
   async function fetchInfo() {
     atmService
@@ -22,13 +23,18 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, setValue } = useForm({
     defaultValues: {},
   });
 
   const onSubmit = (data) => {
     if (data.Amount <= 0) {
       toast.error("Enter value > 0");
+      return;
+    }
+    console.log(widthDrawAmount, authInfo, data);
+    if (widthDrawAmount > 0 && authInfo.CardPassword !== data.Code) {
+      toast.error("Wrong code");
       return;
     }
     atmService
@@ -38,6 +44,8 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
         setOpen(true);
         fetchInfo();
         setLastTransaction({ amount: data.Amount, date: new Date() });
+        setWidthDrawAmount(1);
+        setValue("Code", "");
       })
       .catch((e) => toast.error("Error"));
   };
@@ -108,6 +116,16 @@ export const AtmInfo = ({ authInfo, setAuthInfo }) => {
         <Button sx={{ m: 2 }} variant="contained" color="success" type="submit">
           Withdraw
         </Button>
+        {widthDrawAmount > 0 && (
+          <TextField
+            sx={{ m: 2 }}
+            {...register("Code")}
+            label="Code"
+            variant="outlined"
+            type="number"
+            min="1"
+          />
+        )}
       </form>
       <Button
         sx={{ m: 2 }}

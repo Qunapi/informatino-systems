@@ -10,6 +10,7 @@ import { DatePicker } from "../../common/DatePicker";
 import * as dayjs from "dayjs";
 import { useEffect } from "react";
 import { userService } from "../../services/userService";
+import { PercentDialog } from "./percentModal";
 
 const clientStateOptions = [
   {
@@ -31,6 +32,8 @@ export const CreateUpdateAccount = ({
   onSubmit,
   options: { depositOptions = [], currencyOptions = [] } = {},
 }) => {
+  const [percentOpen, setPercentOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -45,11 +48,20 @@ export const CreateUpdateAccount = ({
 
   const [user, setUser] = useState(undefined);
 
-  const [StartDate, EndDate, PassportSerialNumber, PassportNumber] = watch([
+  const [
+    StartDate,
+    EndDate,
+    PassportSerialNumber,
+    PassportNumber,
+    ContractStartDeposit,
+    ContractPercent,
+  ] = watch([
     "StartDate",
     "EndDate",
     "PassportSerialNumber",
     "PassportNumber",
+    "ContractStartDeposit",
+    "ContractPercent",
   ]);
 
   async function getUser() {
@@ -62,6 +74,9 @@ export const CreateUpdateAccount = ({
 
   const onFormSubmit = (data) => {
     onSubmit(data);
+    if (data.AccountTypeName.value === "Annuity Credit") {
+      setPercentOpen(true);
+    }
   };
 
   React.useEffect(() => {
@@ -76,6 +91,14 @@ export const CreateUpdateAccount = ({
 
   return (
     <>
+      <PercentDialog
+        ContractStartDeposit={ContractStartDeposit}
+        StartDate={StartDate}
+        ContractPercent={ContractPercent}
+        EndDate={EndDate}
+        setOpen={setPercentOpen}
+        open={percentOpen}
+      />
       <NavBar />
       <Errors errors={errors} />
       <Paper
